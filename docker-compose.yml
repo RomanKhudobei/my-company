@@ -1,0 +1,17 @@
+version: "3.8"
+
+services:
+  backend:
+    container_name: backend
+    build:
+      context: .
+      dockerfile: src/Dockerfile
+    environment:
+      - FLASK_ENV=development
+      - PYTHONUNBUFFERED=True
+      - FLASK_RUN_HOST=0.0.0.0
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./src:/src
+    command: ["gunicorn", "src.wsgi:app", "--bind", "0.0.0.0:5000", "--reload"]
