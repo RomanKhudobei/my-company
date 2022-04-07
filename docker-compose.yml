@@ -13,19 +13,36 @@ services:
     ports:
       - "5000:5000"
     volumes:
-      - ./src:/src
+      - ./src:/my-company/src
+      - ./tests:/my-company/tests
+      - ./migrations:/my-company/migrations
 
   db:
     image: postgres:13
     container_name: db
     env_file:
-      - db.env
+      - .env
     volumes:
       - postgres_data:/var/lib/postgresql/data/
+
+  db_test:
+    image: postgres:13
+    container_name: db_test
     environment:
-      - POSTGRES_USER=hello_flask
-      - POSTGRES_PASSWORD=hello_flask
-      - POSTGRES_DB=hello_flask_dev
+      - POSTGRES_USER=test
+      - POSTGRES_PASSWORD=test
+      - POSTGRESS_DB=test
+
+  pgadmin:
+    container_name: pgadmin
+    image: dpage/pgadmin4
+    env_file: .env
+    volumes:
+      - pgadmin:/var/lib/pgadmin
+    ports:
+      - "5050:80"
 
 volumes:
   postgres_data:
+  pgadmin:
+

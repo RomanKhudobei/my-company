@@ -1,3 +1,3 @@
-from src.app import factory
+from app import factory
 
 app = factory.create_app()
