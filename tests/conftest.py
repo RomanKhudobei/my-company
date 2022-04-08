@@ -2,6 +2,7 @@ import pytest
 
 from app.db import db
 from app.factory import create_app
+from company.models import Company
 from user.models import User
 
 
@@ -36,10 +37,28 @@ def clear_db():
 @pytest.fixture
 def create_user():
 
-    def make_create_user(**kwargs):
-        user = User(**kwargs)
+    def make_create_user(first_name='John', last_name='Doe', email='john.doe@gmail.com', password='test', **kwargs):
+        user = User(
+            first_name=first_name,
+            last_name=last_name,
+            email=email,
+            password=password,
+            **kwargs
+        )
         db.session.add(user)
         db.session.commit()
         return user
 
     return make_create_user
+
+
+@pytest.fixture
+def create_company():
+
+    def make_create_company(user, name='Test', **kwargs):
+        company = Company(owner=user, name=name, **kwargs)
+        db.session.add(company)
+        db.session.commit()
+        return company
+
+    return make_create_company

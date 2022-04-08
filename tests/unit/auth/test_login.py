@@ -6,8 +6,6 @@ def test_user_login(client, create_user):
     email = 'test@gmail.com'
     password = 'testabc123'
     user = create_user(
-        first_name='test',
-        last_name='test',
         email=email,
         password=password,
     )
@@ -37,8 +35,6 @@ def test_user_login_with_invalid_credentials(client, create_user):
     email = 'test@gmail.com'
     password = 'testabc123'
     create_user(
-        first_name='test',
-        last_name='test',
         email=email,
         password=password,
     )

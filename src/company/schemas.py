@@ -6,5 +6,3 @@ class CompanySchema(ma.SQLAlchemyAutoSchema):
 
     class Meta:
         model = Company
-        # include_fk = True
-        include_relationships = True

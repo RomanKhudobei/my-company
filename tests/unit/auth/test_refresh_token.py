@@ -1,7 +1,7 @@
 from flask import url_for
 from flask_jwt_extended import create_refresh_token, decode_token
 
-from tests.auth.fixtures import get_auth_headers
+from tests.unit.auth.fixtures import get_auth_headers
 
 
 def test_refresh_token(client, create_user):

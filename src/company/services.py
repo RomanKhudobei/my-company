@@ -14,3 +14,7 @@ def register_company(user, name):
 
     db.session.commit()
     return company
+
+
+def get_company_by_id(company_id):
+    return Company.query.filter_by(id=company_id).one_or_none()
