@@ -32,6 +32,7 @@ class UserCreateSchema(ma.Schema):
 
 
 class UserSchema(ma.SQLAlchemyAutoSchema):
+    id = fields.Integer(dump_only=True)
 
     class Meta:
         model = User

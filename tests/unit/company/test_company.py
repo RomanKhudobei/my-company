@@ -48,11 +48,6 @@ class TestCompanyRetrieve:
         assert response.status_code == 200
         assert response.json.get('id') == company.id
 
-        try:
-            CompanySchema().load(response.json)
-        except ValidationError as e:
-            pytest.fail(str(e))
-
     def test_company_retrieve_not_by_owner(self, client, create_user, create_company):
         user = create_user()
         company = create_company(user)
@@ -99,9 +94,30 @@ class TestCompanyUpdate:
 
         db.session.refresh(company)
 
-        assert company.id == response.json.get('id')
         assert company.name == request_data.get('name') == response.json.get('name')
         assert company.address == request_data.get('address') == response.json.get('address')
+
+    def test_company_update_company_id(self, client, create_user, create_company):
+        user = create_user()
+        company = create_company(user)
+        company_id = company.id
+
+        request_data = {
+            'id': 999,
+            'name': 'Updated test',
+            'address': 'Updated address',
+        }
+        response = client.put(
+            url_for('company.update', company_id=company.id),
+            json=request_data,
+            headers=get_auth_headers(user)
+        )
+
+        assert response.status_code == 400
+
+        db.session.refresh(company)
+
+        assert company.id == company_id
 
     def test_company_update_by_another_user(self, client, create_user, create_company):
         user = create_user()

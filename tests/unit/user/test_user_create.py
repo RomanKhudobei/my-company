@@ -13,12 +13,6 @@ def test_create_user(client):
 
     assert response.status_code == 201
 
-    # check all fields returned
-    try:
-        UserSchema().load(response.json)
-    except ValidationError as e:
-        pytest.fail(str(e))
-
     user = User.query.filter_by(email=response.json['email']).first()
     assert user
 

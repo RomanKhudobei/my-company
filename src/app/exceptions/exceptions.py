@@ -10,5 +10,5 @@ class APIException(Exception):
     def as_dict(self):
         return {
             **self.extra_kwargs,
-            'description': self.description
+            'message': self.description
         }
