@@ -36,3 +36,19 @@ class CompanyRetrieve(Resource):
             response_data = CompanySchema().dump(company)
 
         return response_data, 200
+
+
+class CompanyUpdate(Resource):
+
+    @jwt_required()
+    def put(self, company_id):
+        company = services.get_company_by_id(company_id)
+
+        if not company:
+            abort(404)
+
+        if current_user.id != company.owner_id:
+            abort(403)
+
+        services.update_company(company, request.json)
+        return CompanySchema().dump(company), 200

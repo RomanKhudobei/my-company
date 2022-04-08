@@ -18,3 +18,12 @@ def register_company(user, name):
 
 def get_company_by_id(company_id):
     return Company.query.filter_by(id=company_id).one_or_none()
+
+
+def update_company(company, updated_data):
+    validated_data = CompanySchema().load(updated_data)
+
+    for field, value in validated_data.items():
+        setattr(company, field, value)
+
+    db.session.commit()
