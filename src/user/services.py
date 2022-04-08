@@ -18,3 +18,7 @@ def register_user(first_name, last_name, email, password, repeat_password):
 
     db.session.commit()
     return user
+
+
+def get_user_by_id(user_id):
+    return User.query.filter_by(id=user_id).one_or_none()

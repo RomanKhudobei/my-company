@@ -1,5 +1,6 @@
 from flask import request
-from flask_restful import Resource
+from flask_jwt_extended import jwt_required, current_user
+from flask_restful import Resource, abort
 
 from user import services
 from user.schemas import UserSchema
@@ -16,3 +17,24 @@ class UserCreate(Resource):
             repeat_password=request.json.get('repeat_password'),
         )
         return UserSchema().dump(user), 201
+
+
+class UserRetrieve(Resource):
+
+    @jwt_required()
+    def get(self, user_id):
+        user = services.get_user_by_id(user_id)
+
+        if not user:
+            abort(404)
+
+        requesting_self_information = (current_user.id == user.id)
+        if not requesting_self_information:
+            abort(403)
+
+        response_data = {}
+
+        if user:
+            response_data = UserSchema().dump(user)
+
+        return response_data, 200
