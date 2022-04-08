@@ -1,6 +1,6 @@
 from app.db import db
 from user.models import User
-from user.schemas import UserCreateSchema
+from user.schemas import UserCreateSchema, UserSchema
 
 
 def register_user(first_name, last_name, email, password, repeat_password):
@@ -22,3 +22,12 @@ def register_user(first_name, last_name, email, password, repeat_password):
 
 def get_user_by_id(user_id):
     return User.query.filter_by(id=user_id).one_or_none()
+
+
+def update_user(user, updated_data):
+    validated_data = UserSchema().load(updated_data)
+
+    for field, value in validated_data.items():
+        setattr(user, field, value)
+
+    db.session.commit()

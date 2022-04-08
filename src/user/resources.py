@@ -38,3 +38,20 @@ class UserRetrieve(Resource):
             response_data = UserSchema().dump(user)
 
         return response_data, 200
+
+
+class UserUpdate(Resource):
+
+    @jwt_required()
+    def put(self, user_id):
+        user = services.get_user_by_id(user_id)
+
+        if not user:
+            abort(404)
+
+        requesting_self_information = (current_user.id == user.id)
+        if not requesting_self_information:
+            abort(403)
+
+        services.update_user(user, request.json)
+        return UserSchema().dump(user), 200
