@@ -35,10 +35,8 @@ class User(db.Model):
 
     def __repr__(self):
         return '<User ' \
-               f'{self.id=} ' \
-               f'{self.first_name=} ' \
-               f'{self.last_name=} ' \
-               f'{self.email=}' \
+               f'id={self.id} ' \
+               f'email={self.email}' \
                '>'
 
     # not allow blank values on fields

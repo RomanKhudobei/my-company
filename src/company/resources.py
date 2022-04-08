@@ -47,7 +47,7 @@ class CompanyUpdate(Resource):
         if not company:
             abort(404)
 
-        if current_user.id != company.owner_id:
+        if not company.is_owner(current_user):
             abort(403)
 
         services.update_company(company, request.json)

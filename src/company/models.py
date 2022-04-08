@@ -16,10 +16,13 @@ class Company(db.Model):
 
     def __repr__(self):
         return '<Company ' \
-               f'{self.id=} ' \
-               f'{self.name=} ' \
-               f'{self.owner_id=}' \
+               f'id={self.id} ' \
+               f'name={self.name} ' \
+               f'owner_id={self.owner_id}' \
                '>'
 
     # not allow blank values on fields
     validates_name = validates('name')(lambda self, key, value: empty_string_to_none(value))
+
+    def is_owner(self, user):
+        return self.owner_id == user.id
