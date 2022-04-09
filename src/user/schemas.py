@@ -24,7 +24,7 @@ class UserCreateSchema(ma.Schema):
 
     @marshmallow.validates_schema(skip_on_field_errors=True)
     def validate_object(self, data, **kwargs):
-        if data['password'] < data['repeat_password']:
+        if data['password'] != data['repeat_password']:
             raise marshmallow.ValidationError(
                 message='Passwords not match',
                 field_name='repeat_password',
@@ -41,3 +41,17 @@ class UserSchema(ma.SQLAlchemyAutoSchema):
         # include_fk = True
         include_relationships = True
         exclude = ['password']
+
+
+class ChangePasswordSchema(ma.Schema):
+    old_password = fields.String(required=True, allow_none=False, validate=[not_empty])
+    new_password = fields.String(required=True, allow_none=False, validate=[not_empty])
+    repeat_password = fields.String(required=True, allow_none=False, validate=[not_empty])
+
+    @marshmallow.validates_schema(skip_on_field_errors=True)
+    def validate_object(self, data, **kwargs):
+        if data['new_password'] != data['repeat_password']:
+            raise marshmallow.ValidationError(
+                message='Passwords not match',
+                field_name='repeat_password',
+            )

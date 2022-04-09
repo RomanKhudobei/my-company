@@ -55,3 +55,16 @@ class UserUpdate(Resource):
 
         services.update_user(user, request.json)
         return UserSchema().dump(user), 200
+
+
+class ChangePassword(Resource):
+
+    @jwt_required()
+    def post(self):
+        services.change_password(
+            current_user,
+            old_password=request.json.get('old_password'),
+            new_password=request.json.get('new_password'),
+            repeat_password=request.json.get('repeat_password'),
+        )
+        return 200

@@ -1,6 +1,6 @@
 from app.db import db
 from user.models import User
-from user.schemas import UserCreateSchema, UserSchema
+from user.schemas import UserCreateSchema, UserSchema, ChangePasswordSchema
 
 
 def register_user(first_name, last_name, email, password, repeat_password):
@@ -29,5 +29,17 @@ def update_user(user, updated_data):
 
     for field, value in validated_data.items():
         setattr(user, field, value)
+
+    db.session.commit()
+
+
+def change_password(user, old_password, new_password, repeat_password):
+    validated_data = ChangePasswordSchema().load({
+        'old_password': old_password,
+        'new_password': new_password,
+        'repeat_password': repeat_password,
+    })
+
+    user.password = validated_data.get('new_password')
 
     db.session.commit()

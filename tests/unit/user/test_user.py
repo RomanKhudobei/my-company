@@ -215,3 +215,57 @@ class TestUserUpdate:
         )
 
         assert response.status_code == 403
+
+
+class TestChangePassword:
+
+    def test_change_password(self, client, create_user):
+        user = create_user(password='testabc123')
+
+        request_data = {
+            'old_password': 'testabc123',
+            'new_password': 'testabc999',
+            'repeat_password': 'testabc999',
+        }
+        response = client.post(url_for('user.change_password'), json=request_data, headers=get_auth_headers(user))
+
+        assert response.status_code == 200
+
+        db.session.refresh(user)
+
+        assert user.password == 'testabc999'
+
+    def test_change_password_without_authentication(self, client, create_user):
+        request_data = {
+            'old_password': 'testabc123',
+            'new_password': 'testabc999',
+            'repeat_password': 'testabc999',
+        }
+        response = client.post(url_for('user.change_password'), json=request_data)
+
+        assert response.status_code == 401
+
+    def test_change_password_with_missed_fields(self, client, create_user):
+        user = create_user(password='testabc123')
+
+        request_data = {
+            'old_password': 'testabc123',
+            'new_password': 'testabc999',
+            'repeat_password': 'testabc999',
+        }
+        fields = list(request_data.keys())
+
+        for field in fields:
+            data = request_data.copy()
+
+            data[field] = ''
+            response = client.post(url_for('user.change_password'), json=data, headers=get_auth_headers(user))
+            assert response.status_code == 400
+
+            data[field] = None
+            response = client.post(url_for('user.change_password'), json=data, headers=get_auth_headers(user))
+            assert response.status_code == 400
+
+            del data[field]
+            response = client.post(url_for('user.change_password'), json=data, headers=get_auth_headers(user))
+            assert response.status_code == 400
