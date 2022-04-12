@@ -22,11 +22,9 @@ class User(db.Model):
 
     created_at = db.Column(db.DateTime, nullable=False, default=dt.datetime.now)
 
-    employer_id = db.Column(db.Integer, db.ForeignKey('company.id'), nullable=True)
     company = db.relationship(
         'Company',
         uselist=False,
-        foreign_keys='Company.owner_id',
         backref=db.backref(
             'owner',
             uselist=False,

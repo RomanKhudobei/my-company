@@ -32,12 +32,7 @@ class UserRetrieve(Resource):
         if not requesting_self_information:
             abort(403)
 
-        response_data = {}
-
-        if user:
-            response_data = UserSchema().dump(user)
-
-        return response_data, 200
+        return UserSchema().dump(user), 200
 
 
 class UserUpdate(Resource):

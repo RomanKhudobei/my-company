@@ -1,10 +1,7 @@
-import pytest
 from flask import url_for
-from marshmallow import ValidationError
 
 from app.db import db
 from company.models import Company
-from company.schemas import CompanySchema
 from tests.unit.auth.fixtures import get_auth_headers
 
 
@@ -138,7 +135,7 @@ class TestCompanyUpdate:
             headers=get_auth_headers(another_user)
         )
 
-        assert response.status_code == 403
+        assert response.status_code == 404
 
         db.session.refresh(company)
 

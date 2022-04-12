@@ -3,7 +3,8 @@ from flask_jwt_extended import jwt_required, current_user
 from flask_restful import Resource, abort
 
 from company import services
-from company.schemas import CompanySchema
+from company.permissions import company_owner
+from company.schemas.company import CompanySchema
 
 
 class CompanyCreate(Resource):
@@ -30,25 +31,18 @@ class CompanyRetrieve(Resource):
         if current_user.id != company.owner_id:
             abort(403)
 
-        response_data = {}
-
-        if company:
-            response_data = CompanySchema().dump(company)
-
-        return response_data, 200
+        return CompanySchema().dump(company), 200
 
 
 class CompanyUpdate(Resource):
 
     @jwt_required()
+    @company_owner('company_id')
     def put(self, company_id):
         company = services.get_company_by_id(company_id)
 
         if not company:
             abort(404)
-
-        if not company.is_owner(current_user):
-            abort(403)
 
         services.update_company(company, request.json)
         return CompanySchema().dump(company), 200

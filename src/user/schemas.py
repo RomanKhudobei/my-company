@@ -15,7 +15,7 @@ class UserCreateSchema(ma.Schema):
 
     @validates('email')
     def validate_email(self, email):
-        user_already_exist = User.query.filter_by(email=email).first() is not None
+        user_already_exist = User.query.filter_by(email=email).one_or_none()
         if user_already_exist:
             raise marshmallow.ValidationError(
                 message=f'User with email "{email}" already exist',
@@ -35,6 +35,7 @@ class UserSchema(ma.SQLAlchemyAutoSchema):
     id = fields.Integer(dump_only=True)
     email = fields.Email(dump_only=True)
     company = fields.Integer(dump_only=True)
+    created_at = fields.DateTime(dump_only=True)
 
     class Meta:
         model = User
