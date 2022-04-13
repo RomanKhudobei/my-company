@@ -22,14 +22,12 @@ class CompanyCreate(Resource):
 class CompanyRetrieve(Resource):
 
     @jwt_required()
+    @company_owner('company_id')
     def get(self, company_id):
         company = services.get_company_by_id(company_id)
 
         if not company:
             abort(404)
-
-        if current_user.id != company.owner_id:
-            abort(403)
 
         return CompanySchema().dump(company), 200
 
