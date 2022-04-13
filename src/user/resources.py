@@ -22,34 +22,16 @@ class UserCreate(Resource):
 class UserRetrieve(Resource):
 
     @jwt_required()
-    def get(self, user_id):
-        user = services.get_user_by_id(user_id)
-
-        if not user:
-            abort(404)
-
-        requesting_self_information = (current_user.id == user.id)
-        if not requesting_self_information:
-            abort(403)
-
-        return UserSchema().dump(user), 200
+    def get(self):
+        return UserSchema().dump(current_user), 200
 
 
 class UserUpdate(Resource):
 
     @jwt_required()
-    def put(self, user_id):
-        user = services.get_user_by_id(user_id)
-
-        if not user:
-            abort(404)
-
-        requesting_self_information = (current_user.id == user.id)
-        if not requesting_self_information:
-            abort(403)
-
-        services.update_user(user, request.json)
-        return UserSchema().dump(user), 200
+    def put(self):
+        services.update_user(current_user, request.json)
+        return UserSchema().dump(current_user), 200
 
 
 class ChangePassword(Resource):

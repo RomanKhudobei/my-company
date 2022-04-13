@@ -98,22 +98,13 @@ class TestUserRetrieve:
     def test_user_retrieve(self, client, create_user):
         user = create_user()
 
-        response = client.get(url_for('user.retrieve', user_id=user.id), headers=get_auth_headers(user))
+        response = client.get(url_for('user.retrieve'), headers=get_auth_headers(user))
 
         assert response.status_code == 200
         assert response.json.get('id') == user.id
 
-    def test_user_retrieve_by_another_user(self, client, create_user):
-        user = create_user()
-
-        another_user = create_user(email='test@gmail.com')
-        response = client.get(url_for('user.retrieve', user_id=user.id), headers=get_auth_headers(another_user))
-
-        assert response.status_code == 403
-
     def test_user_retrieve_without_authentication(self, client, create_user):
-        user = create_user()
-        response = client.get(url_for('user.retrieve', user_id=user.id))
+        response = client.get(url_for('user.retrieve'))
         assert response.status_code == 401
 
 
@@ -127,7 +118,7 @@ class TestUserUpdate:
             'last_name': 'Updated last name',
         }
         response = client.put(
-            url_for('user.update', user_id=user.id),
+            url_for('user.update'),
             json=request_data,
             headers=get_auth_headers(user),
         )
@@ -138,6 +129,20 @@ class TestUserUpdate:
         assert user.first_name == 'Updated first name'
         assert user.last_name == 'Updated last name'
 
+    def test_user_update_not_all_fields(self, client, create_user):
+        user = create_user()
+
+        request_data = {
+            'first_name': 'Updated first name',
+        }
+        response = client.put(
+            url_for('user.update'),
+            json=request_data,
+            headers=get_auth_headers(user),
+        )
+
+        assert response.status_code == 400
+
     def test_user_update_company(self, client, create_user):
         user = create_user()
 
@@ -147,7 +152,7 @@ class TestUserUpdate:
             'company': 2,
         }
         response = client.put(
-            url_for('user.update', user_id=user.id),
+            url_for('user.update'),
             json=request_data,
             headers=get_auth_headers(user),
         )
@@ -163,7 +168,7 @@ class TestUserUpdate:
             'password': 'Updated password',
         }
         response = client.put(
-            url_for('user.update', user_id=user.id),
+            url_for('user.update'),
             json=request_data,
             headers=get_auth_headers(user),
         )
@@ -179,7 +184,7 @@ class TestUserUpdate:
             'unknown': 'field',
         }
         response = client.put(
-            url_for('user.update', user_id=user.id),
+            url_for('user.update'),
             json=request_data,
             headers=get_auth_headers(user),
         )
@@ -187,34 +192,16 @@ class TestUserUpdate:
         assert response.status_code == 400
 
     def test_user_update_without_authentication(self, client, create_user):
-        user = create_user()
-
         request_data = {
             'first_name': 'Updated first name',
             'last_name': 'Updated last name',
         }
         response = client.put(
-            url_for('user.update', user_id=user.id),
+            url_for('user.update'),
             json=request_data,
         )
 
         assert response.status_code == 401
-
-    def test_user_update_another_user(self, client, create_user):
-        user = create_user()
-
-        request_data = {
-            'first_name': 'Updated first name',
-            'last_name': 'Updated last name',
-        }
-        another_user = create_user(email='test@gmail.com')
-        response = client.put(
-            url_for('user.update', user_id=another_user.id),
-            json=request_data,
-            headers=get_auth_headers(user),
-        )
-
-        assert response.status_code == 403
 
 
 class TestChangePassword:
