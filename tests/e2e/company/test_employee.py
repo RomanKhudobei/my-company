@@ -1,7 +1,7 @@
 from flask import url_for
 
 from company.models import Employee
-from tests.unit.auth.fixtures import get_auth_headers
+from tests.e2e.auth.fixtures import get_auth_headers
 
 
 class TestEmployeeCreate:

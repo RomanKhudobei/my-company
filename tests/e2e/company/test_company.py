@@ -2,7 +2,7 @@ from flask import url_for
 
 from app.db import db
 from company.models import Company
-from tests.unit.auth.fixtures import get_auth_headers
+from tests.e2e.auth.fixtures import get_auth_headers
 
 
 class TestCompanyCreate:
@@ -55,7 +55,7 @@ class TestCompanyRetrieve:
             headers=get_auth_headers(another_user)
         )
 
-        assert response.status_code == 403
+        assert response.status_code == 404
 
     def test_company_retrieve_without_authentication(self, client, create_user, create_company):
         user = create_user()

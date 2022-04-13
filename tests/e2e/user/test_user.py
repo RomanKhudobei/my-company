@@ -1,8 +1,8 @@
 from flask import url_for
 
 from app.db import db
-from tests.unit.auth.fixtures import get_auth_headers
-from tests.unit.user.fixtures import get_user_data
+from tests.e2e.auth.fixtures import get_auth_headers
+from tests.e2e.user.fixtures import get_user_data
 from user.models import User
 
 
