@@ -7,8 +7,8 @@ from company.resources.employee import EmployeeCreate
 bp = Blueprint('company', __name__)
 api = Api(bp)
 
-api.add_resource(CompanyCreate, '/company/', endpoint='create')
-api.add_resource(CompanyRetrieve, '/company/<int:company_id>/', endpoint='retrieve')
-api.add_resource(CompanyUpdate, '/company/<int:company_id>/', endpoint='update')
+api.add_resource(CompanyCreate, '/companies/', endpoint='create')
+api.add_resource(CompanyRetrieve, '/companies/<int:company_id>/', endpoint='retrieve')
+api.add_resource(CompanyUpdate, '/companies/<int:company_id>/', endpoint='update')
 
-api.add_resource(EmployeeCreate, '/company/<int:company_id>/employee/', endpoint='employee_create')
+api.add_resource(EmployeeCreate, '/companies/<int:company_id>/employees/', endpoint='employee_create')

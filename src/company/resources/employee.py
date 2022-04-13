@@ -1,5 +1,5 @@
 from flask import request
-from flask_jwt_extended import jwt_required, current_user
+from flask_jwt_extended import jwt_required
 from flask_restful import Resource, abort
 
 from company import services
