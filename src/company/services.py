@@ -1,7 +1,10 @@
+from sqlalchemy import or_
+
 from app.db import db
 from company.models import Company, Employee
 from company.schemas.company import CompanySchema
 from company.schemas.employee import EmployeeSchema
+from user.models import User
 
 
 def register_company(user, name):
@@ -41,3 +44,18 @@ def create_employee(company, user_id):
 
     db.session.commit()
     return employee
+
+
+def get_company_employees(company_id, search_query=None):
+    query = Employee.query.join(User).filter(Employee.company_id == company_id)
+
+    if search_query:
+        query = query.filter(
+            or_(
+                User.first_name.contains(search_query),
+                User.last_name.contains(search_query),
+                User.email.contains(search_query),
+            )
+        )
+
+    return query

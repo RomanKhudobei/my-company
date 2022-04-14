@@ -4,15 +4,18 @@ from marshmallow import fields, validates
 from app.marshmallow import ma
 from company.models import Employee
 from user.models import User
+from user.schemas import UserSchema
 
 
 class EmployeeSchema(ma.SQLAlchemyAutoSchema):
     id = fields.Integer(dump_only=True)
     created_at = fields.DateTime(dump_only=True)
+    user = fields.Nested(UserSchema(exclude=['company']), dump_only=True)
 
     class Meta:
         model = Employee
         include_fk = True
+        # include_relationships = True
 
     @validates('user_id')
     def validate_user_id(self, user_id):

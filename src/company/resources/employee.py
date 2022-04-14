@@ -19,3 +19,17 @@ class EmployeeCreate(Resource):
 
         employee = services.create_employee(company, request.json.get('user_id'))
         return EmployeeSchema().dump(employee), 201
+
+
+class EmployeeList(Resource):
+
+    @jwt_required()
+    @company_owner('company_id')
+    def get(self, company_id):
+        company = services.get_company_by_id(company_id)
+
+        if not company:
+            abort(404)
+
+        employees = services.get_company_employees(company.id, request.args.get('search'))
+        return EmployeeSchema(exclude=['user_id']).dump(employees, many=True), 200

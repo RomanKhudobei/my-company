@@ -2,7 +2,7 @@ import pytest
 
 from app.db import db
 from app.factory import create_app
-from company.models import Company
+from company.models import Company, Employee
 from user.models import User
 
 
@@ -62,3 +62,15 @@ def create_company():
         return company
 
     return make_create_company
+
+
+@pytest.fixture
+def create_employee():
+
+    def make_create_employee(user, company):
+        employee = Employee(user=user, company=company)
+        db.session.add(employee)
+        db.session.commit()
+        return employee
+
+    return make_create_employee
