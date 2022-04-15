@@ -8,7 +8,10 @@ from user.models import User
 
 
 def register_company(user, name):
-    validated_data = CompanySchema(partial=True).load({'name': name})
+    validated_data = CompanySchema(context={'owner': user}).load({
+        'name': name,
+        'owner_id': user.id,
+    })
 
     company = Company(
         owner=user,
@@ -25,7 +28,7 @@ def get_company_by_id(company_id):
 
 
 def update_company(company, updated_data):
-    validated_data = CompanySchema().load(updated_data)
+    validated_data = CompanySchema(exclude=['owner_id']).load(updated_data)
 
     for field, value in validated_data.items():
         setattr(company, field, value)
