@@ -32,3 +32,18 @@ class EmployeeSchema(ma.SQLAlchemyAutoSchema):
                 message='User already employed',
                 field_name='user_id',
             )
+
+        if user.company is not None:
+            raise marshmallow.ValidationError(
+                message='Company owner cannot be registered as employee',
+                field_name='user_id',
+            )
+
+        company = self.context.get('company')
+        assert company, 'Company in context required'
+
+        if company.owner_id == user.id:
+            raise marshmallow.ValidationError(
+                message='Owner of the company cannot be registered as employee',
+                field_name='user_id',
+            )

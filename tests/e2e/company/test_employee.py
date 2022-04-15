@@ -75,6 +75,35 @@ class TestEmployeeCreate:
 
         assert response.status_code == 400
 
+    def test_create_owner_as_employee(self, client, create_user, create_company):
+        owner = create_user()
+        company = create_company(owner)
+
+        request_data = {'user_id': owner.id}
+        response = client.post(
+            url_for('company.employee_create', company_id=company.id),
+            json=request_data,
+            headers=get_auth_headers(owner)
+        )
+
+        assert response.status_code == 400
+
+    def test_create_owner_of_another_company_as_employee(self, client, create_user, create_company):
+        owner = create_user()
+        company = create_company(owner)
+
+        another_owner = create_user(email='another_owner@gmail.com')
+        create_company(another_owner)
+
+        request_data = {'user_id': another_owner.id}
+        response = client.post(
+            url_for('company.employee_create', company_id=company.id),
+            json=request_data,
+            headers=get_auth_headers(owner)
+        )
+
+        assert response.status_code == 400
+
 
 class TestEmployeeList:
 

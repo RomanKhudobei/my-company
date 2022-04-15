@@ -37,7 +37,7 @@ def update_company(company, updated_data):
 
 
 def create_employee(company, user_id):
-    validated_data = EmployeeSchema(partial=True).load({'user_id': user_id})
+    validated_data = EmployeeSchema(context={'company': company}, partial=True).load({'user_id': user_id})
 
     employee = Employee(
         company_id=company.id,
