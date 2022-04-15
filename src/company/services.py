@@ -5,6 +5,7 @@ from company.models import Company, Employee
 from company.schemas.company import CompanySchema
 from company.schemas.employee import EmployeeSchema
 from user.models import User
+from user.schemas import UserSchema
 
 
 def register_company(user, name):
@@ -65,4 +66,13 @@ def get_company_employees(company_id, search_query=None):
 
 
 def get_employee_by_id(employee_id):
-    return Employee.query.join(User).filter_by(id=employee_id).one_or_none()
+    return Employee.query.join(User).filter(Employee.id == employee_id).one_or_none()
+
+
+def update_employee(employee, updated_data):
+    validated_data = UserSchema().load(updated_data)
+
+    for field, value in validated_data.items():
+        setattr(employee.user, field, value)
+
+    db.session.commit()

@@ -10,7 +10,7 @@ from user.schemas import UserSchema
 class EmployeeSchema(ma.SQLAlchemyAutoSchema):
     id = fields.Integer(dump_only=True)
     created_at = fields.DateTime(dump_only=True)
-    user = fields.Nested(UserSchema(exclude=['company']), dump_only=True)
+    user = fields.Nested(UserSchema(exclude=['company', 'employer']), dump_only=True)
 
     class Meta:
         model = Employee

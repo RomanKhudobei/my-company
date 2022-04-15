@@ -1,6 +1,7 @@
 import pytest
 from flask import url_for
 
+from app.db import db
 from company.models import Employee
 from tests.e2e.auth.fixtures import get_auth_headers
 
@@ -275,3 +276,143 @@ class TestEmployeeRetrieve:
         )
 
         assert response.status_code == 403
+
+
+class TestEmployeeUpdate:
+
+    def test_employee_update(self, client, create_user, create_company, create_employee):
+        owner = create_user(email='owner@gmail.com')
+        company = create_company(owner)
+
+        user = create_user()
+        employee = create_employee(user, company)
+        request_data = {
+            'first_name': 'updated',
+            'last_name': 'updated',
+        }
+        response = client.put(
+            url_for('company.employee_update', company_id=company.id, employee_id=employee.id),
+            json=request_data,
+            headers=get_auth_headers(owner),
+        )
+
+        assert response.status_code == 200
+
+        db.session.refresh(employee)
+
+        assert employee.user.first_name == 'updated'
+        assert employee.user.last_name == 'updated'
+
+    def test_employee_update_email(self, client, create_user, create_company, create_employee):
+        owner = create_user(email='owner@gmail.com')
+        company = create_company(owner)
+
+        user = create_user()
+        employee = create_employee(user, company)
+        request_data = {
+            'first_name': 'updated',
+            'last_name': 'updated',
+            'email': 'updated@gmail.com'
+        }
+        response = client.put(
+            url_for('company.employee_update', company_id=company.id, employee_id=employee.id),
+            json=request_data,
+            headers=get_auth_headers(owner),
+        )
+
+        assert response.status_code == 400
+
+    def test_employee_update_password(self, client, create_user, create_company, create_employee):
+        owner = create_user(email='owner@gmail.com')
+        company = create_company(owner)
+
+        user = create_user()
+        employee = create_employee(user, company)
+        request_data = {
+            'first_name': 'updated',
+            'last_name': 'updated',
+            'password': 'qwerty123'
+        }
+        response = client.put(
+            url_for('company.employee_update', company_id=company.id, employee_id=employee.id),
+            json=request_data,
+            headers=get_auth_headers(owner),
+        )
+
+        assert response.status_code == 400
+
+    def test_employee_update_employer(self, client, create_user, create_company, create_employee):
+        owner = create_user(email='owner@gmail.com')
+        company = create_company(owner)
+
+        user = create_user()
+        employee = create_employee(user, company)
+        request_data = {
+            'first_name': 'updated',
+            'last_name': 'updated',
+            'employer': 999,
+        }
+        response = client.put(
+            url_for('company.employee_update', company_id=company.id, employee_id=employee.id),
+            json=request_data,
+            headers=get_auth_headers(owner),
+        )
+
+        assert response.status_code == 400
+
+    def test_employee_update_without_authentication(self, client, create_user, create_company, create_employee):
+        owner = create_user(email='owner@gmail.com')
+        company = create_company(owner)
+
+        user = create_user()
+        employee = create_employee(user, company)
+        request_data = {
+            'first_name': 'updated',
+            'last_name': 'updated',
+        }
+        response = client.put(
+            url_for('company.employee_update', company_id=company.id, employee_id=employee.id),
+            json=request_data,
+        )
+
+        assert response.status_code == 401
+
+    def test_employee_update_not_by_employer(self, client, create_user, create_company, create_employee):
+        owner = create_user(email='owner@gmail.com')
+        company = create_company(owner)
+
+        another_owner = create_user(email='another_owner@gmail.com')
+        another_company = create_company(another_owner)
+
+        user = create_user()
+        employee = create_employee(user, company)
+        request_data = {
+            'first_name': 'updated',
+            'last_name': 'updated',
+        }
+        response = client.put(
+            url_for('company.employee_update', company_id=company.id, employee_id=employee.id),
+            json=request_data,
+            headers=get_auth_headers(another_owner),
+        )
+
+        assert response.status_code == 403
+
+    def test_employee_update_by_employee_himself(self, client, create_user, create_company, create_employee):
+        owner = create_user(email='owner@gmail.com')
+        company = create_company(owner)
+
+        user = create_user()
+        employee = create_employee(user, company)
+        request_data = {
+            'first_name': 'updated',
+            'last_name': 'updated',
+        }
+        response = client.put(
+            url_for('company.employee_update', company_id=company.id, employee_id=employee.id),
+            json=request_data,
+            headers=get_auth_headers(user),
+        )
+
+        assert response.status_code == 404
+
