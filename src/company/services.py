@@ -62,3 +62,7 @@ def get_company_employees(company_id, search_query=None):
         )
 
     return query
+
+
+def get_employee_by_id(employee_id):
+    return Employee.query.join(User).filter_by(id=employee_id).one_or_none()

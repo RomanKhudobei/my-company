@@ -209,3 +209,69 @@ class TestEmployeeList:
         assert response.status_code == 200
 
         assert len(response.json) == 3
+
+
+class TestEmployeeRetrieve:
+
+    def test_employee_retrieve(self, client, create_user, create_company, create_employee):
+        user = create_user()
+        owner = create_user(email='owner@gmail.com')
+        company = create_company(owner)
+        employee = create_employee(user, company)
+
+        response = client.get(
+            url_for('company.employee_retrieve', company_id=company.id, employee_id=employee.id),
+            headers=get_auth_headers(owner),
+        )
+
+        assert response.status_code == 200
+        assert response.json.get('id') == employee.id
+
+    def test_employee_retrieve_without_authentication(self, client, create_user, create_company, create_employee):
+        user = create_user()
+        owner = create_user(email='owner@gmail.com')
+        company = create_company(owner)
+        employee = create_employee(user, company)
+
+        response = client.get(
+            url_for('company.employee_retrieve', company_id=company.id, employee_id=employee.id),
+        )
+
+        assert response.status_code == 401
+
+    def test_employee_retrieve_not_exist(self, client, create_user, create_company, create_employee):
+        owner = create_user(email='owner@gmail.com')
+        company = create_company(owner)
+
+        response = client.get(
+            url_for('company.employee_retrieve', company_id=company.id, employee_id=999),
+            headers=get_auth_headers(owner)
+        )
+
+        assert response.status_code == 404
+
+    def test_employee_retrieve_company_not_exist(self, client, create_user, create_company, create_employee):
+        owner = create_user(email='owner@gmail.com')
+        response = client.get(
+            url_for('company.employee_retrieve', company_id=999, employee_id=999),
+            headers=get_auth_headers(owner)
+        )
+
+        assert response.status_code == 404
+
+    def test_employee_retrieve_not_by_company_owner(self, client, create_user, create_company, create_employee):
+        owner = create_user(email='owner@gmail.com')
+        company = create_company(owner)
+
+        another_owner = create_user(email='another_owner@gmail.com')
+        another_company = create_company(another_owner)
+
+        user = create_user()
+        employee = create_employee(user, company)
+
+        response = client.get(
+            url_for('company.employee_retrieve', company_id=company.id, employee_id=employee.id),
+            headers=get_auth_headers(another_owner)
+        )
+
+        assert response.status_code == 403

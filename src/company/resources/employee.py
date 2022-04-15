@@ -33,3 +33,19 @@ class EmployeeList(Resource):
 
         employees = services.get_company_employees(company.id, request.args.get('search'))
         return EmployeeSchema(exclude=['user_id']).dump(employees, many=True), 200
+
+
+class EmployeeRetrieve(Resource):
+
+    @jwt_required()
+    @company_owner('company_id')
+    def get(self, company_id, employee_id):
+        company = services.get_company_by_id(company_id)
+        if not company:
+            abort(404)
+
+        employee = services.get_employee_by_id(employee_id)
+        if not employee:
+            abort(404)
+
+        return EmployeeSchema(exclude=['user_id']).dump(employee), 200
