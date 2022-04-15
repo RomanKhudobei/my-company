@@ -76,3 +76,8 @@ def update_employee(employee, updated_data):
         setattr(employee.user, field, value)
 
     db.session.commit()
+
+
+def delete_employee(employee):
+    db.session.delete(employee)
+    db.session.commit()

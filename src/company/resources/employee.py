@@ -66,3 +66,20 @@ class EmployeeUpdate(Resource):
 
         services.update_employee(employee, request.json)
         return EmployeeSchema(exclude=['user_id']).dump(employee), 200
+
+
+class EmployeeDelete(Resource):
+
+    @jwt_required()
+    @company_owner('company_id')
+    def delete(self, company_id, employee_id):
+        company = services.get_company_by_id(company_id)
+        if not company:
+            abort(404)
+
+        employee = services.get_employee_by_id(employee_id)
+        if not employee:
+            abort(404)
+
+        services.delete_employee(employee)
+        return 200

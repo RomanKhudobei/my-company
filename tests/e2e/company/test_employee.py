@@ -4,6 +4,7 @@ from flask import url_for
 from app.db import db
 from company.models import Employee
 from tests.e2e.auth.fixtures import get_auth_headers
+from user.models import User
 
 
 class TestEmployeeCreate:
@@ -416,3 +417,86 @@ class TestEmployeeUpdate:
 
         assert response.status_code == 404
 
+
+class TestEmployeeDelete:
+
+    def test_employee_delete(self, client, create_user, create_company, create_employee):
+        owner = create_user(email='owner@gmail.com')
+        company = create_company(owner)
+
+        user = create_user()
+        employee = create_employee(user, company)
+
+        response = client.delete(
+            url_for('company.employee_delete', company_id=company.id, employee_id=employee.id),
+            headers=get_auth_headers(owner),
+        )
+
+        assert response.status_code == 200
+        assert Employee.query.filter_by(company_id=company.id, user_id=user.id).count() == 0
+        assert User.query.count() == 1  # only owner left after employee deletion
+
+    def test_employee_delete_without_authentication(self, client, create_user, create_company, create_employee):
+        owner = create_user(email='owner@gmail.com')
+        company = create_company(owner)
+
+        user = create_user()
+        employee = create_employee(user, company)
+
+        response = client.delete(
+            url_for('company.employee_delete', company_id=company.id, employee_id=employee.id),
+        )
+
+        assert response.status_code == 401
+
+    def test_employee_delete_not_by_employer(self, client, create_user, create_company, create_employee):
+        owner = create_user(email='owner@gmail.com')
+        company = create_company(owner)
+
+        user = create_user()
+        employee = create_employee(user, company)
+
+        another_owner = create_user(email='another_owner@gmail.com')
+        another_company = create_company(another_owner)
+
+        response = client.delete(
+            url_for('company.employee_delete', company_id=company.id, employee_id=employee.id),
+            headers=get_auth_headers(another_owner),
+        )
+
+        assert response.status_code == 403
+
+    def test_employee_delete_by_himself(self, client, create_user, create_company, create_employee):
+        owner = create_user(email='owner@gmail.com')
+        company = create_company(owner)
+
+        user = create_user()
+        employee = create_employee(user, company)
+
+        response = client.delete(
+            url_for('company.employee_delete', company_id=company.id, employee_id=employee.id),
+            headers=get_auth_headers(user),
+        )
+
+        assert response.status_code == 404
+
+    def test_delete_not_existing_employee(self, client, create_user, create_company, create_employee):
+        owner = create_user(email='owner@gmail.com')
+        company = create_company(owner)
+
+        response = client.delete(
+            url_for('company.employee_delete', company_id=company.id, employee_id=999),
+            headers=get_auth_headers(owner),
+        )
+
+        assert response.status_code == 404
+
+    def test_employee_delete_from_not_existing_company(self, client, create_user, create_company, create_employee):
+        owner = create_user(email='owner@gmail.com')
+
+        response = client.delete(
+            url_for('company.employee_delete', company_id=999, employee_id=999),
+            headers=get_auth_headers(owner),
+        )
+
+        assert response.status_code == 404

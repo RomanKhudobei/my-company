@@ -33,6 +33,7 @@ class Employee(db.Model):
 
     user = db.relationship(
         'User',
+        cascade='all,delete',
         backref=db.backref(
             'employer',
             uselist=False,
