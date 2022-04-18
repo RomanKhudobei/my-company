@@ -22,17 +22,6 @@ class User(db.Model):
 
     created_at = db.Column(db.DateTime, nullable=False, default=dt.datetime.now)
 
-    company = db.relationship(
-        'Company',
-        uselist=False,
-        backref=db.backref(
-            'owner',
-            uselist=False,
-            lazy=True,
-            cascade="all,delete",
-        )
-    )
-
     def __repr__(self):
         return '<User ' \
                f'id={self.id} ' \

@@ -14,6 +14,17 @@ class Company(db.Model):
 
     created_at = db.Column(db.DateTime, nullable=False, default=dt.datetime.now)
 
+    owner = db.relationship(  # load joined?
+        'User',
+        uselist=False,
+        cascade="all,delete",
+        backref=db.backref(
+            'company',
+            uselist=False,
+            lazy=True,
+        )
+    )
+
     def __repr__(self):
         return '<Company ' \
                f'id={self.id} ' \
