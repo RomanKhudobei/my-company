@@ -62,7 +62,7 @@ class TestEmployeeCreate:
             headers=get_auth_headers(user)
         )
 
-        assert response.status_code == 404
+        assert response.status_code == 403
 
     def test_employee_create_user_not_exist(self, client, create_user, create_company):
         owner = create_user()
@@ -415,7 +415,7 @@ class TestEmployeeUpdate:
             headers=get_auth_headers(user),
         )
 
-        assert response.status_code == 404
+        assert response.status_code == 403
 
 
 class TestEmployeeDelete:
@@ -478,7 +478,7 @@ class TestEmployeeDelete:
             headers=get_auth_headers(user),
         )
 
-        assert response.status_code == 404
+        assert response.status_code == 403
 
     def test_delete_not_existing_employee(self, client, create_user, create_company, create_employee):
         owner = create_user(email='owner@gmail.com')

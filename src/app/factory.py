@@ -33,6 +33,7 @@ def create_app(app_name=PKG_NAME, test_config=None):
     auth.init_package(app)
 
     # importing models for flask-migrate in order to track models
+    from location import models
     from company import models
     from user import models
 

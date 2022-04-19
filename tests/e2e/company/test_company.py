@@ -84,7 +84,7 @@ class TestCompanyRetrieve:
             headers=get_auth_headers(another_user)
         )
 
-        assert response.status_code == 404
+        assert response.status_code == 403
 
     def test_company_retrieve_without_authentication(self, client, create_user, create_company):
         user = create_user()
@@ -181,7 +181,7 @@ class TestCompanyUpdate:
             headers=get_auth_headers(another_user)
         )
 
-        assert response.status_code == 404
+        assert response.status_code == 403
 
         db.session.refresh(company)
 

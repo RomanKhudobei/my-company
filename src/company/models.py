@@ -38,8 +38,11 @@ class Company(db.Model):
 
 class Employee(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), unique=True, nullable=False)
     company_id = db.Column(db.Integer, db.ForeignKey('company.id'), nullable=False)
+    office_id = db.Column(db.Integer, db.ForeignKey('office.id', ondelete='SET NULL'))
+
     created_at = db.Column(db.DateTime, nullable=False, default=dt.datetime.now)
 
     user = db.relationship(
@@ -59,3 +62,63 @@ class Employee(db.Model):
             cascade="all,delete",
         )
     )
+    office = db.relationship(
+        'Office',
+        uselist=False,
+        backref=db.backref(
+            'employees',
+            lazy=True,
+        )
+    )
+
+
+class Office(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String, nullable=False)
+    address = db.Column(db.String, nullable=False)
+
+    company_id = db.Column(db.Integer, db.ForeignKey('company.id'), nullable=False)
+
+    company = db.relationship(
+        'Company',
+        uselist=False,
+        cascade='all,delete',
+        backref=db.backref(
+            'offices',
+            lazy=True,
+        ),
+    )
+
+    country_id = db.Column(db.Integer, db.ForeignKey('country.id', ondelete='SET NULL'))
+    region_id = db.Column(db.Integer, db.ForeignKey('region.id', ondelete='SET NULL'))
+    city_id = db.Column(db.Integer, db.ForeignKey('city.id', ondelete='SET NULL'))
+
+    # country = db.relationship(
+    #     'Country',
+    #     uselist=False,
+    #     backref=db.backref(
+    #         'offices',
+    #         lazy=True,
+    #     )
+    # )
+    # region = db.relationship(
+    #     'Region',
+    #     uselist=False,
+    #     backref=db.backref(
+    #         'offices',
+    #         lazy=True,
+    #     )
+    # )
+    # city = db.relationship(
+    #     'City',
+    #     uselist=False,
+    #     backref=db.backref(
+    #         'offices',
+    #         lazy=True,
+    #     )
+    # )
+
+    # not allow blank values on fields
+    validates_name = validates('name')(lambda self, key, value: empty_string_to_none(value))
+    validates_address = validates('address')(lambda self, key, value: empty_string_to_none(value))
+

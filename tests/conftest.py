@@ -3,6 +3,7 @@ import pytest
 from app.db import db
 from app.factory import create_app
 from company.models import Company, Employee
+from location.models import Country, Region, City
 from user.models import User
 
 
@@ -74,3 +75,53 @@ def create_employee():
         return employee
 
     return make_create_employee
+
+
+@pytest.fixture
+def create_country():
+
+    def make_create_country(name='Country'):
+        country = Country(name=name)
+        db.session.add(country)
+        db.session.commit()
+        return country
+
+    return make_create_country
+
+
+@pytest.fixture
+def create_region():
+
+    def make_create_region(country, name='Region'):
+        region = Region(name=name, country=country)
+        db.session.add(region)
+        db.session.commit()
+        return region
+
+    return make_create_region
+
+
+@pytest.fixture
+def create_city():
+
+    def make_create_city(country, region, name='City'):
+        city = City(name=name, region=region)
+        db.session.add(city)
+        db.session.commit()
+        return city
+
+    return make_create_city
+
+
+@pytest.fixture
+def create_location():
+
+    def make_create_location(country_name='Country', region_name='Region', city_name='City'):
+        country = Country(name=country_name)
+        region = Region(name=region_name, country=country)
+        city = City(name=city_name, region=region)
+        db.session.add_all([country, region, city])
+        db.session.commit()
+        return country, city, region
+
+    return make_create_location

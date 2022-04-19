@@ -1,9 +1,10 @@
 from sqlalchemy import or_
 
 from app.db import db
-from company.models import Company, Employee
+from company.models import Company, Employee, Office
 from company.schemas.company import CompanySchema
 from company.schemas.employee import EmployeeSchema
+from company.schemas.office import OfficeSchema
 from user.models import User
 from user.schemas import UserSchema
 
@@ -81,3 +82,20 @@ def update_employee(employee, updated_data):
 def delete_employee(employee):
     db.session.delete(employee)
     db.session.commit()
+
+
+def create_office(company, name, address, country_id, region_id, city_id):
+    validated_data = OfficeSchema(context={'company': company}).load({
+        'company_id': company.id,
+        'name': name,
+        'address': address,
+        'country_id': country_id,
+        'region_id': region_id,
+        'city_id': city_id,
+    })
+
+    office = Office(**validated_data)
+    db.session.add(office)
+
+    db.session.commit()
+    return office
