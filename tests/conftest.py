@@ -2,7 +2,7 @@ import pytest
 
 from app.db import db
 from app.factory import create_app
-from company.models import Company, Employee
+from company.models import Company, Employee, Office
 from location.models import Country, Region, City
 from user.models import User
 
@@ -125,3 +125,27 @@ def create_location():
         return country, city, region
 
     return make_create_location
+
+
+@pytest.fixture
+def create_office(create_location):
+
+    def make_create_office(company, name='Name', address='Address', **location):
+        country, region, city = location.get('country'), location.get('region'), location.get('city')
+
+        if not all([country, region, city]):
+            country, region, city = create_location()
+
+        office = Office(
+            company=company,
+            name=name,
+            address=address,
+            country_id=country.id,
+            region_id=region.id,
+            city_id=city.id,
+        )
+        db.session.add(office)
+        db.session.commit()
+        return office
+
+    return make_create_office

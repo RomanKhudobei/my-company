@@ -99,3 +99,18 @@ def create_office(company, name, address, country_id, region_id, city_id):
 
     db.session.commit()
     return office
+
+
+def get_company_offices(company, country_id=None, region_id=None, city_id=None):
+    query = Office.query.filter_by(company_id=company.id)
+
+    if country_id:
+        query = query.filter_by(country_id=country_id)
+
+    if region_id:
+        query = query.filter_by(region_id=region_id)
+
+    if city_id:
+        query = query.filter_by(city_id=city_id)
+
+    return query

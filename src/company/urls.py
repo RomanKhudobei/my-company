@@ -3,7 +3,7 @@ from flask_restful import Api
 
 from company.resources.company import CompanyCreate, CompanyRetrieve, CompanyUpdate
 from company.resources.employee import EmployeeCreate, EmployeeList, EmployeeRetrieve, EmployeeUpdate, EmployeeDelete
-from company.resources.office import OfficeCreate
+from company.resources.office import OfficeCreate, OfficeList
 
 bp = Blueprint('company', __name__)
 api = Api(bp)
@@ -19,3 +19,4 @@ api.add_resource(EmployeeUpdate, '/companies/<int:company_id>/employees/<int:emp
 api.add_resource(EmployeeDelete, '/companies/<int:company_id>/employees/<int:employee_id>/', endpoint='employee_delete')
 
 api.add_resource(OfficeCreate, '/companies/<int:company_id>/offices/', endpoint='office_create')
+api.add_resource(OfficeList, '/companies/<int:company_id>/offices/', endpoint='office_list')

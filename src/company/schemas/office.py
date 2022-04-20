@@ -16,9 +16,9 @@ class OfficeSchema(ma.SQLAlchemyAutoSchema):
     region = fields.Nested(RegionSchema(), dump_only=True)
     city = fields.Nested(CitySchema(), dump_only=True)
 
-    country_id = fields.Integer(load_only=True)
-    region_id = fields.Integer(load_only=True)
-    city_id = fields.Integer(load_only=True)
+    country_id = fields.Integer(allow_none=False, load_only=True)
+    region_id = fields.Integer(allow_none=False, load_only=True)
+    city_id = fields.Integer(allow_none=False, load_only=True)
 
     class Meta:
         model = Office
