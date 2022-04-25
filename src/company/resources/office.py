@@ -47,3 +47,21 @@ class OfficeList(Resource):
         )
 
         return OfficeSchema().dump(offices, many=True), 200
+
+
+class OfficeRetrieve(Resource):
+
+    @jwt_required()
+    @company_owner('company_id')
+    def get(self, company_id, office_id):
+        company = services.get_company_by_id(company_id)
+
+        if not company:
+            abort(404)
+
+        office = services.get_office_by_id(office_id)
+
+        if not office:
+            abort(404)
+
+        return OfficeSchema().dump(office), 200

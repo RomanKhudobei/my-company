@@ -359,3 +359,93 @@ class TestOfficeList:
         response = client.get(url_for('company.office_list', company_id=company.id), headers=get_auth_headers(user))
 
         assert response.status_code == 403
+
+
+class TestOfficeRetrieve:
+
+    def test_retrieve_office(self, client, create_user, create_company, create_office):
+        owner = create_user(email='owner@gmail.com')
+        company = create_company(owner)
+        office = create_office(company)
+
+        response = client.get(
+            url_for('company.office_retrieve', company_id=company.id, office_id=office.id),
+            headers=get_auth_headers(owner),
+        )
+
+        assert response.status_code == 200
+        assert response.json.get('id') == office.id
+
+    def test_retrieve_office_without_authentication(self, client, create_user, create_company, create_office):
+        owner = create_user(email='owner@gmail.com')
+        company = create_company(owner)
+        office = create_office(company)
+
+        response = client.get(
+            url_for('company.office_retrieve', company_id=company.id, office_id=office.id),
+        )
+
+        assert response.status_code == 401
+
+    def test_retrieve_office_not_by_owner(self, client, create_user, create_company, create_office):
+        owner = create_user(email='owner@gmail.com')
+        company = create_company(owner)
+        office = create_office(company)
+
+        response = client.get(
+            url_for('company.office_retrieve', company_id=company.id, office_id=office.id),
+            headers=get_auth_headers(create_user()),
+        )
+
+        assert response.status_code == 403
+
+    def test_retrieve_office_by_owner_of_another_company(self, client, create_user, create_company, create_office):
+        owner = create_user(email='owner@gmail.com')
+        company = create_company(owner)
+        office = create_office(company)
+
+        another_owner = create_user(email='another_owner@gmail.com')
+        another_company = create_company(another_owner)
+        response = client.get(
+            url_for('company.office_retrieve', company_id=company.id, office_id=office.id),
+            headers=get_auth_headers(another_owner),
+        )
+
+        assert response.status_code == 403
+
+    def test_retrieve_office_by_employee(self, client, create_user, create_company, create_office, create_employee):
+        owner = create_user(email='owner@gmail.com')
+        company = create_company(owner)
+        office = create_office(company)
+
+        user = create_user()
+        employee = create_employee(user, company)
+
+        response = client.get(
+            url_for('company.office_retrieve', company_id=company.id, office_id=office.id),
+            headers=get_auth_headers(user),
+        )
+
+        assert response.status_code == 403
+
+    def test_retrieve_not_existing_office(self, client, create_user, create_company, create_office):
+        owner = create_user(email='owner@gmail.com')
+        company = create_company(owner)
+
+        response = client.get(
+            url_for('company.office_retrieve', company_id=company.id, office_id=999),
+            headers=get_auth_headers(owner),
+        )
+
+        assert response.status_code == 404
+
+    def test_retrieve_office_from_not_existing_company(self, client, create_user, create_company, create_office):
+        owner = create_user(email='owner@gmail.com')
+        company = create_company(owner)
+
+        response = client.get(
+            url_for('company.office_retrieve', company_id=999, office_id=999),
+            headers=get_auth_headers(owner),
+        )
+
+        assert response.status_code == 404

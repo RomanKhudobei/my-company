@@ -114,3 +114,7 @@ def get_company_offices(company, country_id=None, region_id=None, city_id=None):
         query = query.filter_by(city_id=city_id)
 
     return query
+
+
+def get_office_by_id(office_id):
+    return Office.query.filter_by(id=office_id).one_or_none()
