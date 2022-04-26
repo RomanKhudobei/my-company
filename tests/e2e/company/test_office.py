@@ -1,6 +1,7 @@
 import pytest
 from flask import url_for
 
+from app.db import db
 from company.models import Office
 from tests.e2e.auth.fixtures import get_auth_headers
 
@@ -449,3 +450,227 @@ class TestOfficeRetrieve:
         )
 
         assert response.status_code == 404
+
+
+class TestOfficeUpdate:
+
+    def test_update_office(self, client, create_user, create_company, create_office, create_location):
+        owner = create_user(email='owner@gmail.com')
+        company = create_company(owner)
+
+        office = create_office(company)
+
+        country, region, city = create_location()
+        request_data = {
+            'name': 'Updated name',
+            'address': 'Updated address',
+            'country_id': country.id,
+            'region_id': region.id,
+            'city_id': city.id,
+        }
+
+        response = client.put(
+            url_for('company.office_update', company_id=company.id, office_id=office.id),
+            json=request_data,
+            headers=get_auth_headers(owner),
+        )
+
+        assert response.status_code == 200
+
+        db.session.refresh(office)
+
+        assert response.json.get('name') == 'Updated name' == office.name
+        assert response.json.get('address') == 'Updated address' == office.address
+        assert response.json.get('country', {}).get('id') == country.id == office.country_id
+        assert response.json.get('region', {}).get('id') == region.id == office.region_id
+        assert response.json.get('city', {}).get('id') == city.id == office.city_id
+
+    def test_update_office_with_missing_fields(self, client, create_user, create_company, create_office, create_location):
+        owner = create_user(email='owner@gmail.com')
+        company = create_company(owner)
+
+        office = create_office(company)
+
+        country, region, city = create_location()
+        request_data = {
+            'name': 'Updated name',
+            'address': 'Updated address',
+            'country_id': country.id,
+            'region_id': region.id,
+            'city_id': city.id,
+        }
+
+        for field in request_data:
+            data = request_data.copy()
+
+            data[field] = None
+            response = client.put(
+                url_for('company.office_update', company_id=company.id, office_id=office.id),
+                json=data,
+                headers=get_auth_headers(owner),
+            )
+            assert response.status_code == 400
+
+            data[field] = ''
+            response = client.put(
+                url_for('company.office_update', company_id=company.id, office_id=office.id),
+                json=data,
+                headers=get_auth_headers(owner),
+            )
+            assert response.status_code == 400
+
+            del data[field]
+            response = client.put(
+                url_for('company.office_update', company_id=company.id, office_id=office.id),
+                json=data,
+                headers=get_auth_headers(owner),
+            )
+            assert response.status_code == 400
+
+    def test_update_office_without_authentication(self, client, create_user, create_company, create_office, create_location):
+        owner = create_user(email='owner@gmail.com')
+        company = create_company(owner)
+
+        office = create_office(company)
+
+        country, region, city = create_location()
+        request_data = {
+            'name': 'Updated name',
+            'address': 'Updated address',
+            'country_id': country.id,
+            'region_id': region.id,
+            'city_id': city.id,
+        }
+
+        response = client.put(
+            url_for('company.office_update', company_id=company.id, office_id=office.id),
+            json=request_data,
+        )
+
+        assert response.status_code == 401
+
+    def test_update_office_by_employee(self, client, create_user, create_company, create_office, create_location,
+                                       create_employee):
+        owner = create_user(email='owner@gmail.com')
+        company = create_company(owner)
+
+        office = create_office(company)
+
+        user = create_user()
+        create_employee(user, company)
+
+        country, region, city = create_location()
+        request_data = {
+            'name': 'Updated name',
+            'address': 'Updated address',
+            'country_id': country.id,
+            'region_id': region.id,
+            'city_id': city.id,
+        }
+
+        response = client.put(
+            url_for('company.office_update', company_id=company.id, office_id=office.id),
+            json=request_data,
+            headers=get_auth_headers(user),
+        )
+
+        assert response.status_code == 403
+
+    def test_update_office_by_another_owner(self, client, create_user, create_company, create_office, create_location):
+        owner = create_user(email='owner@gmail.com')
+        company = create_company(owner)
+
+        office = create_office(company)
+
+        another_owner = create_user(email='another_owner@gmail.com')
+        another_company = create_company(another_owner)
+
+        country, region, city = create_location()
+        request_data = {
+            'name': 'Updated name',
+            'address': 'Updated address',
+            'country_id': country.id,
+            'region_id': region.id,
+            'city_id': city.id,
+        }
+
+        response = client.put(
+            url_for('company.office_update', company_id=company.id, office_id=office.id),
+            json=request_data,
+            headers=get_auth_headers(another_owner),
+        )
+
+        assert response.status_code == 403
+
+    def test_update_office_by_another_user(self, client, create_user, create_company, create_office, create_location):
+        owner = create_user(email='owner@gmail.com')
+        company = create_company(owner)
+
+        office = create_office(company)
+
+        user = create_user()
+
+        country, region, city = create_location()
+        request_data = {
+            'name': 'Updated name',
+            'address': 'Updated address',
+            'country_id': country.id,
+            'region_id': region.id,
+            'city_id': city.id,
+        }
+
+        response = client.put(
+            url_for('company.office_update', company_id=company.id, office_id=office.id),
+            json=request_data,
+            headers=get_auth_headers(user),
+        )
+
+        assert response.status_code == 403
+
+    def test_update_office_company(self, client, create_user, create_company, create_office, create_location):
+        owner = create_user(email='owner@gmail.com')
+        company = create_company(owner)
+
+        office = create_office(company)
+
+        country, region, city = create_location()
+        request_data = {
+            'company_id': 999,
+            'name': 'Updated name',
+            'address': 'Updated address',
+            'country_id': country.id,
+            'region_id': region.id,
+            'city_id': city.id,
+        }
+
+        response = client.put(
+            url_for('company.office_update', company_id=company.id, office_id=office.id),
+            json=request_data,
+            headers=get_auth_headers(owner),
+        )
+
+        assert response.status_code == 400
+
+    def test_update_office_id(self, client, create_user, create_company, create_office, create_location):
+        owner = create_user(email='owner@gmail.com')
+        company = create_company(owner)
+
+        office = create_office(company)
+
+        country, region, city = create_location()
+        request_data = {
+            'id': 999,
+            'name': 'Updated name',
+            'address': 'Updated address',
+            'country_id': country.id,
+            'region_id': region.id,
+            'city_id': city.id,
+        }
+
+        response = client.put(
+            url_for('company.office_update', company_id=company.id, office_id=office.id),
+            json=request_data,
+            headers=get_auth_headers(owner),
+        )
+
+        assert response.status_code == 400

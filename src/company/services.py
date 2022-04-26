@@ -118,3 +118,12 @@ def get_company_offices(company, country_id=None, region_id=None, city_id=None):
 
 def get_office_by_id(office_id):
     return Office.query.filter_by(id=office_id).one_or_none()
+
+
+def update_office(office, updated_data):
+    validated_data = OfficeSchema().load(updated_data)
+
+    for field, value in validated_data.items():
+        setattr(office, field, value)
+
+    db.session.commit()

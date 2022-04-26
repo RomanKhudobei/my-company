@@ -65,3 +65,22 @@ class OfficeRetrieve(Resource):
             abort(404)
 
         return OfficeSchema().dump(office), 200
+
+
+class OfficeUpdate(Resource):
+
+    @jwt_required()
+    @company_owner('company_id')
+    def put(self, company_id, office_id):
+        company = services.get_company_by_id(company_id)
+
+        if not company:
+            abort(404)
+
+        office = services.get_office_by_id(office_id)
+
+        if not office:
+            abort(404)
+
+        services.update_office(office, request.json)
+        return OfficeSchema().dump(office), 200

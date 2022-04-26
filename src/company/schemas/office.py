@@ -9,16 +9,18 @@ from location.schemas import CountrySchema, RegionSchema, CitySchema
 
 
 class OfficeSchema(ma.SQLAlchemyAutoSchema):
-    name = fields.String(allow_none=False, validate=[not_empty])
-    address = fields.String(allow_none=False, validate=[not_empty])
+    name = fields.String(required=True, allow_none=False, validate=[not_empty])
+    address = fields.String(required=True, allow_none=False, validate=[not_empty])
 
+    id = fields.Integer(dump_only=True)
+    company_id = fields.Integer(dump_only=True)
     country = fields.Nested(CountrySchema(), dump_only=True)
     region = fields.Nested(RegionSchema(), dump_only=True)
     city = fields.Nested(CitySchema(), dump_only=True)
 
-    country_id = fields.Integer(allow_none=False, load_only=True)
-    region_id = fields.Integer(allow_none=False, load_only=True)
-    city_id = fields.Integer(allow_none=False, load_only=True)
+    country_id = fields.Integer(required=True, allow_none=False, load_only=True)
+    region_id = fields.Integer(required=True, allow_none=False, load_only=True)
+    city_id = fields.Integer(required=True, allow_none=False, load_only=True)
 
     class Meta:
         model = Office
