@@ -121,7 +121,7 @@ def get_office_by_id(office_id):
 
 
 def update_office(office, updated_data):
-    validated_data = OfficeSchema().load(updated_data)
+    validated_data = OfficeSchema(exclude=['company_id']).load(updated_data)
 
     for field, value in validated_data.items():
         setattr(office, field, value)

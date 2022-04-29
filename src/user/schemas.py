@@ -38,6 +38,9 @@ class UserSchema(ma.SQLAlchemyAutoSchema):
     employer = fields.Integer(dump_only=True)
     created_at = fields.DateTime(dump_only=True)
 
+    first_name = fields.String(required=True, allow_none=False, validate=[not_empty])
+    last_name = fields.String(required=True, allow_none=False, validate=[not_empty])
+
     class Meta:
         model = User
         # include_fk = True

@@ -13,7 +13,6 @@ class OfficeSchema(ma.SQLAlchemyAutoSchema):
     address = fields.String(required=True, allow_none=False, validate=[not_empty])
 
     id = fields.Integer(dump_only=True)
-    company_id = fields.Integer(dump_only=True)
     country = fields.Nested(CountrySchema(), dump_only=True)
     region = fields.Nested(RegionSchema(), dump_only=True)
     city = fields.Nested(CitySchema(), dump_only=True)

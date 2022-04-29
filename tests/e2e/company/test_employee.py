@@ -304,6 +304,63 @@ class TestEmployeeUpdate:
         assert employee.user.first_name == 'updated'
         assert employee.user.last_name == 'updated'
 
+    def test_employee_update_with_missed_fields(self, client, create_user, create_company, create_employee):
+        owner = create_user(email='owner@gmail.com')
+        company = create_company(owner)
+
+        user = create_user()
+        employee = create_employee(user, company)
+        request_data = {
+            'first_name': 'updated',
+            'last_name': 'updated',
+        }
+
+        for field in request_data:
+            data = request_data.copy()
+
+            data[field] = None
+            response = client.put(
+                url_for('company.employee_update', company_id=company.id, employee_id=employee.id),
+                json=data,
+                headers=get_auth_headers(owner),
+            )
+            assert response.status_code == 400
+
+            data[field] = ''
+            response = client.put(
+                url_for('company.employee_update', company_id=company.id, employee_id=employee.id),
+                json=data,
+                headers=get_auth_headers(owner),
+            )
+            assert response.status_code == 400
+
+            del data[field]
+            response = client.put(
+                url_for('company.employee_update', company_id=company.id, employee_id=employee.id),
+                json=data,
+                headers=get_auth_headers(owner),
+            )
+            assert response.status_code == 400
+
+    def test_update_employee_id(self, client, create_user, create_company, create_employee):
+        owner = create_user(email='owner@gmail.com')
+        company = create_company(owner)
+
+        user = create_user()
+        employee = create_employee(user, company)
+        request_data = {
+            'id': 999,
+            'first_name': 'updated',
+            'last_name': 'updated',
+        }
+        response = client.put(
+            url_for('company.employee_update', company_id=company.id, employee_id=employee.id),
+            json=request_data,
+            headers=get_auth_headers(owner),
+        )
+
+        assert response.status_code == 400
+
     def test_employee_update_email(self, client, create_user, create_company, create_employee):
         owner = create_user(email='owner@gmail.com')
         company = create_company(owner)
