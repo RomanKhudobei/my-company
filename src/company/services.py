@@ -127,3 +127,8 @@ def update_office(office, updated_data):
         setattr(office, field, value)
 
     db.session.commit()
+
+
+def delete_office(office):
+    db.session.delete(office)
+    db.session.commit()

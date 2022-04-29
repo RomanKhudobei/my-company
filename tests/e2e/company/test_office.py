@@ -674,3 +674,126 @@ class TestOfficeUpdate:
         )
 
         assert response.status_code == 400
+
+    def test_update_someone_else_office(self, db, client, create_user, create_company, create_office, create_location):
+        owner = create_user(email='owner@gmail.com')
+        company = create_company(owner)
+
+        another_owner = create_user(email='another_owner@gmail.com')
+        another_company = create_company(another_owner)
+        another_company_office = create_office(another_company)
+
+        country, region, city = create_location()
+        request_data = {
+            'name': 'Updated name',
+            'address': 'Updated address',
+            'country_id': country.id,
+            'region_id': region.id,
+            'city_id': city.id,
+        }
+
+        response = client.put(
+            url_for('company.office_update', company_id=company.id, office_id=another_company_office.id),
+            json=request_data,
+            headers=get_auth_headers(owner),
+        )
+
+        assert response.status_code == 403
+
+
+class TestOfficeDelete:
+
+    def test_delete_office(self, client, create_user, create_company, create_office):
+        owner = create_user(email='owner@gmail.com')
+        company = create_company(owner)
+
+        office = create_office(company)
+
+        response = client.delete(
+            url_for('company.office_delete', company_id=company.id, office_id=office.id),
+            headers=get_auth_headers(owner),
+        )
+
+        assert response.status_code == 200
+
+        assert Office.query.count() == 0
+
+    def test_delete_office_without_authentication(self, client, create_user, create_company, create_office):
+        owner = create_user(email='owner@gmail.com')
+        company = create_company(owner)
+
+        office = create_office(company)
+
+        response = client.delete(
+            url_for('company.office_delete', company_id=company.id, office_id=office.id),
+        )
+
+        assert response.status_code == 401
+
+    def test_delete_office_by_employee(self, client, create_user, create_company, create_office, create_employee):
+        owner = create_user(email='owner@gmail.com')
+        company = create_company(owner)
+
+        user = create_user()
+        create_employee(user, company)
+        office = create_office(company)
+
+        response = client.delete(
+            url_for('company.office_delete', company_id=company.id, office_id=office.id),
+            headers=get_auth_headers(user),
+        )
+
+        assert response.status_code == 403
+
+    def test_delete_office_by_owner_of_another_business(self, client, create_user, create_company, create_office):
+        owner = create_user(email='owner@gmail.com')
+        company = create_company(owner)
+
+        office = create_office(company)
+
+        another_owner = create_user(email='another_owner@gmail.com')
+        another_company = create_company(another_owner)
+
+        response = client.delete(
+            url_for('company.office_delete', company_id=company.id, office_id=office.id),
+            headers=get_auth_headers(another_owner),
+        )
+
+        assert response.status_code == 403
+
+    def test_delete_someone_else_office(self, client, create_user, create_company, create_office):
+        owner = create_user(email='owner@gmail.com')
+        company = create_company(owner)
+        office = create_office(company)
+
+        another_owner = create_user(email='another_owner@gmail.com')
+        another_company = create_company(another_owner)
+        another_office = create_office(another_company)
+
+        response = client.delete(
+            url_for('company.office_delete', company_id=company.id, office_id=another_office.id),
+            headers=get_auth_headers(owner),
+        )
+
+        assert response.status_code == 403
+
+    def test_delete_not_existing_office(self, client, create_user, create_company):
+        owner = create_user(email='owner@gmail.com')
+        company = create_company(owner)
+
+        response = client.delete(
+            url_for('company.office_delete', company_id=company.id, office_id=999),
+            headers=get_auth_headers(owner),
+        )
+
+        assert response.status_code == 404
+
+    def test_delete_office_of_non_existing_company(self, client, create_user, create_company, create_office):
+        owner = create_user(email='owner@gmail.com')
+
+        response = client.delete(
+            url_for('company.office_delete', company_id=999, office_id=999),
+            headers=get_auth_headers(owner),
+        )
+
+        assert response.status_code == 404
