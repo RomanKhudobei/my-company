@@ -1,8 +1,9 @@
 from flask import request
-from flask_jwt_extended import jwt_required
+from flask_jwt_extended import jwt_required, current_user
 from flask_restful import Resource, abort
 
 from company import services
+from company.models import Employee
 from company.permissions import company_owner, company_owner_or_employee
 from company.schemas.office import OfficeSchema
 
@@ -139,3 +140,19 @@ class AssignEmployeeToOffice(Resource):
 
         services.assign_employee_to_office(office, employee)
         return 200
+
+
+class MyOffice(Resource):
+
+    @jwt_required()
+    def get(self):
+        employee = Employee.query.filter_by(user_id=current_user.id).one_or_none()
+
+        if not employee:
+            abort(404)
+
+        if employee.office_id is None:
+            abort(404)
+
+        office = services.get_office_by_id(employee.office_id)
+        return OfficeSchema().dump(office), 200

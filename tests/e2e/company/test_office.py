@@ -951,3 +951,57 @@ class TestAssignEmployeeToOffice:
         )
 
         assert response.status_code == 404
+
+
+class TestMyOffice:
+
+    def test_my_office(self, client, create_user, create_company, create_office, create_employee,
+                       assign_employee_to_office):
+        owner = create_user(email='owner@gmail.com')
+        company = create_company(owner)
+        office = create_office(company)
+
+        user = create_user()
+        employee = create_employee(user, company)
+        assign_employee_to_office(office, employee)
+
+        response = client.get(url_for('company.my_office'), headers=get_auth_headers(user))
+
+        assert response.status_code == 200
+
+        assert response.json.get('id') == office.id
+
+    def test_my_office_without_office(self, client, create_user, create_company, create_office, create_employee,
+                                      assign_employee_to_office):
+        owner = create_user(email='owner@gmail.com')
+        company = create_company(owner)
+        office = create_office(company)
+
+        user = create_user()
+        employee = create_employee(user, company)
+
+        response = client.get(url_for('company.my_office'), headers=get_auth_headers(user))
+
+        assert response.status_code == 404
+
+    def test_my_office_without_employee(self, client, create_user, create_company, create_office, create_employee,
+                                        assign_employee_to_office):
+        user = create_user()
+
+        response = client.get(url_for('company.my_office'), headers=get_auth_headers(user))
+
+        assert response.status_code == 404
+
+    def test_my_office_without_authentication(self, client, create_user, create_company, create_office, create_employee,
+                                              assign_employee_to_office):
+        owner = create_user(email='owner@gmail.com')
+        company = create_company(owner)
+        office = create_office(company)
+
+        user = create_user()
+        employee = create_employee(user, company)
+        assign_employee_to_office(office, employee)
+
+        response = client.get(url_for('company.my_office'))
+
+        assert response.status_code == 401
