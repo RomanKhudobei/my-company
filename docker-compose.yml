@@ -28,6 +28,7 @@ services:
   db_test:
     image: postgres:13
     container_name: db_test
+    command: postgres -N 500
     environment:
       - POSTGRES_USER=test
       - POSTGRES_PASSWORD=test
