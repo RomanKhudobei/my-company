@@ -4,7 +4,7 @@ from flask_restful import Resource, abort
 
 from company import services
 from company.permissions import company_owner
-from company.schemas.employee import EmployeeSchema
+from company.schemas.employee import EmployeeCreateSchema
 
 
 class EmployeeCreate(Resource):
@@ -18,7 +18,7 @@ class EmployeeCreate(Resource):
             abort(404)
 
         employee = services.create_employee(company, request.json.get('user_id'))
-        return EmployeeSchema().dump(employee), 201
+        return EmployeeCreateSchema().dump(employee), 201
 
 
 class EmployeeList(Resource):
@@ -32,7 +32,7 @@ class EmployeeList(Resource):
             abort(404)
 
         employees = services.get_company_employees(company.id, request.args.get('search'))
-        return EmployeeSchema(exclude=['user_id']).dump(employees, many=True), 200
+        return EmployeeCreateSchema(exclude=['user_id']).dump(employees, many=True), 200
 
 
 class EmployeeRetrieve(Resource):
@@ -48,7 +48,7 @@ class EmployeeRetrieve(Resource):
         if not employee:
             abort(404)
 
-        return EmployeeSchema(exclude=['user_id']).dump(employee), 200
+        return EmployeeCreateSchema(exclude=['user_id']).dump(employee), 200
 
 
 class EmployeeUpdate(Resource):
@@ -65,7 +65,7 @@ class EmployeeUpdate(Resource):
             abort(404)
 
         services.update_employee(employee, request.json)
-        return EmployeeSchema(exclude=['user_id']).dump(employee), 200
+        return EmployeeCreateSchema(exclude=['user_id']).dump(employee), 200
 
 
 class EmployeeDelete(Resource):

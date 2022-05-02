@@ -149,3 +149,13 @@ def create_office(create_location):
         return office
 
     return make_create_office
+
+
+@pytest.fixture()
+def assign_employee_to_office(db):
+
+    def make_assign_employee_to_office(office, employee):
+        employee.office_id = office.id
+        db.session.commit()
+
+    return make_assign_employee_to_office

@@ -3,7 +3,7 @@ from sqlalchemy import or_
 from app.db import db
 from company.models import Company, Employee, Office
 from company.schemas.company import CompanySchema
-from company.schemas.employee import EmployeeSchema
+from company.schemas.employee import EmployeeCreateSchema, AssignEmployeeToOfficeSchema
 from company.schemas.office import OfficeSchema
 from user.models import User
 from user.schemas import UserSchema
@@ -39,7 +39,7 @@ def update_company(company, updated_data):
 
 
 def create_employee(company, user_id):
-    validated_data = EmployeeSchema(context={'company': company}, partial=True).load({'user_id': user_id})
+    validated_data = EmployeeCreateSchema(context={'company': company}, partial=True).load({'user_id': user_id})
 
     employee = Employee(
         company_id=company.id,
@@ -131,4 +131,17 @@ def update_office(office, updated_data):
 
 def delete_office(office):
     db.session.delete(office)
+    db.session.commit()
+
+
+def assign_employee_to_office(office, employee):
+    AssignEmployeeToOfficeSchema(context={
+        'office': office,
+        'employee': employee,
+    }).load({
+        'id': employee.id,
+        'office_id': employee.office_id,
+    })
+
+    employee.office_id = office.id
     db.session.commit()

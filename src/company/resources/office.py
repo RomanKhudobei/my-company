@@ -112,3 +112,30 @@ class OfficeDelete(Resource):
 
         services.delete_office(office)
         return 200
+
+
+class AssignEmployeeToOffice(Resource):
+
+    @jwt_required()
+    @company_owner('company_id')
+    def post(self, company_id, office_id):
+        company = services.get_company_by_id(company_id)
+
+        if not company:
+            abort(404)
+
+        office = services.get_office_by_id(office_id)
+
+        if not office:
+            abort(404)
+
+        if office.company_id != company.id:
+            abort(403)
+
+        employee = services.get_employee_by_id(request.json.get('employee_id'))
+
+        if not employee:
+            abort(404)
+
+        services.assign_employee_to_office(office, employee)
+        return 200

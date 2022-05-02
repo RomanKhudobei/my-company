@@ -797,3 +797,157 @@ class TestOfficeDelete:
         )
 
         assert response.status_code == 404
+
+
+class TestAssignEmployeeToOffice:
+
+    def test_assign_employee_to_office(self, db, client, create_user, create_company, create_office, create_employee):
+        owner = create_user(email='owner@gmail.com')
+        company = create_company(owner)
+        office = create_office(company)
+
+        user = create_user()
+        employee = create_employee(user, company)
+
+        request_data = {'employee_id': employee.id}
+        response = client.post(
+            url_for('company.office_assign_employee', company_id=company.id, office_id=office.id),
+            json=request_data,
+            headers=get_auth_headers(owner),
+        )
+
+        assert response.status_code == 200
+
+        db.session.refresh(employee)
+        assert employee.office_id == office.id
+        assert Employee.query.filter_by(id=employee.id, office_id=office.id).count() == 1
+
+    def test_assign_already_assigned_employee_to_office(self, db, client, create_user, create_company, create_office,
+                                                        create_employee, assign_employee_to_office):
+        owner = create_user(email='owner@gmail.com')
+        company = create_company(owner)
+        office = create_office(company)
+
+        user = create_user()
+        employee = create_employee(user, company)
+        assign_employee_to_office(office, employee)
+
+        another_office = create_office(company)
+
+        request_data = {'employee_id': employee.id}
+        response = client.post(
+            url_for('company.office_assign_employee', company_id=company.id, office_id=another_office.id),
+            json=request_data,
+            headers=get_auth_headers(owner),
+        )
+
+        assert response.status_code == 200
+
+        db.session.refresh(employee)
+        assert employee.office_id == another_office.id
+        assert Employee.query.filter_by(id=employee.id, office_id=another_office.id).count() == 1
+        assert Employee.query.filter_by(id=employee.id, office_id=office.id).count() == 0
+
+    def test_assign_employee_to_office_without_authentication(self, db, client, create_user, create_company,
+                                                              create_office, create_employee):
+        owner = create_user(email='owner@gmail.com')
+        company = create_company(owner)
+        office = create_office(company)
+
+        user = create_user()
+        employee = create_employee(user, company)
+
+        request_data = {'employee_id': employee.id}
+        response = client.post(
+            url_for('company.office_assign_employee', company_id=company.id, office_id=office.id),
+            json=request_data,
+        )
+
+        assert response.status_code == 401
+
+    def test_assign_foreign_employee_to_office(self, db, client, create_user, create_company, create_office, create_employee):
+        owner = create_user(email='owner@gmail.com')
+        company = create_company(owner)
+        office = create_office(company)
+
+        another_owner = create_user(email='another_owner@gmail.com')
+        another_company = create_company(another_owner)
+        user = create_user()
+        employee = create_employee(user, another_company)
+
+        request_data = {'employee_id': employee.id}
+        response = client.post(
+            url_for('company.office_assign_employee', company_id=company.id, office_id=office.id),
+            json=request_data,
+            headers=get_auth_headers(owner),
+        )
+
+        assert response.status_code == 400
+
+        db.session.refresh(employee)
+        assert employee.office_id is None
+        assert Employee.query.filter_by(id=employee.id, office_id=office.id).count() == 0
+
+    def test_assign_employee_to_foreign_office(self, db, client, create_user, create_company, create_office,
+                                               create_employee):
+        owner = create_user(email='owner@gmail.com')
+        company = create_company(owner)
+        office = create_office(company)
+
+        user = create_user()
+        employee = create_employee(user, company)
+
+        another_owner = create_user(email='another_owner@gmail.com')
+        another_company = create_company(another_owner)
+        another_office = create_office(another_company)
+
+        request_data = {'employee_id': employee.id}
+        response = client.post(
+            url_for('company.office_assign_employee', company_id=company.id, office_id=another_office.id),
+            json=request_data,
+            headers=get_auth_headers(owner),
+        )
+
+        assert response.status_code == 403
+
+        db.session.refresh(employee)
+        assert employee.office_id is None
+        assert Employee.query.filter_by(id=employee.id, office_id=office.id).count() == 0
+
+    def test_assign_employee_to_not_existing_office(self, db, client, create_user, create_company, create_office,
+                                                    create_employee):
+        owner = create_user(email='owner@gmail.com')
+        company = create_company(owner)
+
+        user = create_user()
+        employee = create_employee(user, company)
+
+        request_data = {'employee_id': employee.id}
+        response = client.post(
+            url_for('company.office_assign_employee', company_id=company.id, office_id=999),
+            json=request_data,
+            headers=get_auth_headers(owner),
+        )
+
+        assert response.status_code == 404
+
+        db.session.refresh(employee)
+        assert employee.office_id is None
+
+    def test_assign_employee_to_office_of_non_existing_company(self, db, client, create_user, create_company, create_office,
+                                                               create_employee):
+        owner = create_user(email='owner@gmail.com')
+        company = create_company(owner)
+        office = create_office(company)
+
+        user = create_user()
+        employee = create_employee(user, company)
+
+        request_data = {'employee_id': employee.id}
+        response = client.post(
+            url_for('company.office_assign_employee', company_id=999, office_id=office.id),
+            json=request_data,
+            headers=get_auth_headers(owner),
+        )
+
+        assert response.status_code == 404
