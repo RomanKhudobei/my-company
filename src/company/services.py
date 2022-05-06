@@ -166,3 +166,15 @@ def create_vehicle(company, name, model, licence_plate, year_of_manufacture, off
     db.session.add(vehicle)
     db.session.commit()
     return vehicle
+
+
+def get_company_vehicles(company, office_id=None, driver_id=None):
+    vehicles = Vehicle.query.filter_by(company_id=company.id)
+
+    if office_id:
+        vehicles = vehicles.filter_by(office_id=office_id)
+
+    if driver_id:
+        vehicles = vehicles.filter_by(driver_id=driver_id)
+
+    return vehicles

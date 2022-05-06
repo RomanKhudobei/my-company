@@ -159,3 +159,23 @@ def assign_employee_to_office(db):
         db.session.commit()
 
     return make_assign_employee_to_office
+
+
+@pytest.fixture
+def create_vehicle(db):
+
+    def make_create_vehicle(company, name='Skoda', model='Octavia', licence_plate='AI 9999 EC',
+                            year_of_manufacture=2005, **kwargs):
+        vehicle = Vehicle(
+            name=name,
+            model=model,
+            licence_plate=licence_plate,
+            year_of_manufacture=year_of_manufacture,
+            company_id=company.id,
+            **kwargs
+        )
+        db.session.add(vehicle)
+        db.session.commit()
+        return vehicle
+
+    return make_create_vehicle

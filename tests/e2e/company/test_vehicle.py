@@ -1,3 +1,4 @@
+import pytest
 from flask import url_for
 
 from tests.e2e.auth.fixtures import get_auth_headers
@@ -240,3 +241,169 @@ class TestVehicleCreate:
         )
 
         assert response.status_code == 400
+
+    # TODO: add tests when one user has multiple vehicles
+
+
+class TestVehicleList:
+
+    def test_vehicle_list(self, client, create_user, create_company, create_vehicle):
+        owner = create_user(email='owner@gmail.com')
+        company = create_company(owner)
+
+        another_owner = create_user(email='another_owner@gmail.com')
+        another_company = create_company(another_owner)
+
+        vehicles_count = 5
+        for _ in range(vehicles_count):
+            create_vehicle(company)
+
+        for _ in range(vehicles_count):
+            create_vehicle(another_company)
+
+        response = client.get(url_for('company.vehicle_list', company_id=company.id), headers=get_auth_headers(owner))
+
+        assert response.status_code == 200
+        assert len(response.json) == vehicles_count
+
+    def test_vehicle_list_without_authentication(self, client, create_user, create_company, create_vehicle):
+        owner = create_user(email='owner@gmail.com')
+        company = create_company(owner)
+
+        another_owner = create_user(email='another_owner@gmail.com')
+        another_company = create_company(another_owner)
+
+        vehicles_count = 5
+        for _ in range(vehicles_count):
+            create_vehicle(company)
+
+        for _ in range(vehicles_count):
+            create_vehicle(another_company)
+
+        response = client.get(url_for('company.vehicle_list', company_id=company.id))
+
+        assert response.status_code == 401
+
+    def test_vehicle_list_for_not_existing_company(self, client, create_user, create_company, create_vehicle):
+        owner = create_user(email='owner@gmail.com')
+        company = create_company(owner)
+
+        another_owner = create_user(email='another_owner@gmail.com')
+        another_company = create_company(another_owner)
+
+        vehicles_count = 5
+        for _ in range(vehicles_count):
+            create_vehicle(company)
+
+        for _ in range(vehicles_count):
+            create_vehicle(another_company)
+
+        response = client.get(url_for('company.vehicle_list', company_id=999), headers=get_auth_headers(owner))
+
+        assert response.status_code == 404
+
+    def test_vehicle_list_by_foreign_owner(self, client, create_user, create_company, create_vehicle):
+        owner = create_user(email='owner@gmail.com')
+        company = create_company(owner)
+
+        another_owner = create_user(email='another_owner@gmail.com')
+        another_company = create_company(another_owner)
+
+        vehicles_count = 5
+        for _ in range(vehicles_count):
+            create_vehicle(company)
+
+        for _ in range(vehicles_count):
+            create_vehicle(another_company)
+
+        response = client.get(url_for('company.vehicle_list', company_id=company.id), headers=get_auth_headers(another_owner))
+
+        assert response.status_code == 403
+
+    def test_vehicle_list_by_employee(self, client, create_user, create_company, create_vehicle, create_employee):
+        owner = create_user(email='owner@gmail.com')
+        company = create_company(owner)
+
+        another_owner = create_user(email='another_owner@gmail.com')
+        another_company = create_company(another_owner)
+
+        user = create_user()
+        employee = create_employee(user, company)
+
+        vehicles_count = 5
+        for _ in range(vehicles_count):
+            create_vehicle(company)
+
+        for _ in range(vehicles_count):
+            create_vehicle(another_company)
+
+        response = client.get(url_for('company.vehicle_list', company_id=company.id), headers=get_auth_headers(user))
+
+        assert response.status_code == 403
+
+    def test_vehicle_list_by_random_user(self, client, create_user, create_company, create_vehicle, create_employee):
+        owner = create_user(email='owner@gmail.com')
+        company = create_company(owner)
+
+        another_owner = create_user(email='another_owner@gmail.com')
+        another_company = create_company(another_owner)
+
+        user = create_user()
+
+        vehicles_count = 5
+        for _ in range(vehicles_count):
+            create_vehicle(company)
+
+        for _ in range(vehicles_count):
+            create_vehicle(another_company)
+
+        response = client.get(url_for('company.vehicle_list', company_id=company.id), headers=get_auth_headers(user))
+
+        assert response.status_code == 403
+
+    @pytest.mark.parametrize(
+        'query,result_count',
+        [
+            ('', 6),
+            ('?office_id=1', 2),
+            ('?office_id=2', 3),
+            ('?driver_id=1', 1),
+            ('?driver_id=2', 2),
+            ('?office_id=1&driver_id=1', 1),
+            ('?office_id=2&driver_id=2', 2),
+        ]
+    )
+    def test_vehicle_list_filters(self, client, create_user, create_company, create_vehicle, create_office,
+                                  create_employee, query, result_count):
+        user1 = create_user(email='user1@gmail.com')
+        user2 = create_user(email='user2@gmail.com')
+
+        owner = create_user(email='owner@gmail.com')
+        company = create_company(owner)
+
+        another_owner = create_user(email='another_owner@gmail.com')
+        another_company = create_company(another_owner)
+
+        office1 = create_office(company)
+        office2 = create_office(company)
+
+        create_employee(user1, company, office_id=office1.id)
+        create_employee(user2, company, office_id=office2.id)
+
+        create_vehicle(company)
+        create_vehicle(company, office_id=office1.id)
+        create_vehicle(company, office_id=office2.id)
+        create_vehicle(company, office_id=office1.id, driver_id=user1.id)
+        create_vehicle(company, office_id=office2.id, driver_id=user2.id)
+        create_vehicle(company, office_id=office2.id, driver_id=user2.id)
+
+        for _ in range(5):
+            create_vehicle(another_company)
+
+        response = client.get(
+            url_for('company.vehicle_list', company_id=company.id) + query,
+            headers=get_auth_headers(owner),
+        )
+
+        assert response.status_code == 200
+        assert len(response.json) == result_count

@@ -28,3 +28,22 @@ class VehicleCreate(Resource):
         )
 
         return VehicleSchema().dump(vehicle), 201
+
+
+class VehicleList(Resource):
+
+    @jwt_required()
+    @company_owner('company_id')
+    def get(self, company_id):
+        company = services.get_company_by_id(company_id)
+
+        if not company:
+            abort(404)
+
+        vehicles = services.get_company_vehicles(
+            company=company,
+            office_id=request.args.get('office_id'),
+            driver_id=request.args.get('driver_id'),
+        )
+
+        return VehicleSchema().dump(vehicles, many=True), 200
