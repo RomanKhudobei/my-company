@@ -68,8 +68,8 @@ def create_company():
 @pytest.fixture
 def create_employee():
 
-    def make_create_employee(user, company):
-        employee = Employee(user=user, company=company)
+    def make_create_employee(user, company, **kwargs):
+        employee = Employee(user=user, company=company, **kwargs)
         db.session.add(employee)
         db.session.commit()
         return employee

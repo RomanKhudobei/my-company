@@ -27,7 +27,7 @@ class TestVehicleCreate:
         office = create_office(company)
 
         user = create_user()
-        employee = create_employee(user, company)
+        employee = create_employee(user, company, office_id=office.id)
 
         request_data = self.get_request_data(office.id, user.id)
         response = client.post(
@@ -44,7 +44,7 @@ class TestVehicleCreate:
         office = create_office(company)
 
         user = create_user()
-        employee = create_employee(user, company)
+        employee = create_employee(user, company, office_id=office.id)
 
         request_data = self.get_request_data(office.id, user.id)
 
@@ -78,7 +78,7 @@ class TestVehicleCreate:
         office = create_office(company)
 
         user = create_user()
-        employee = create_employee(user, company)
+        employee = create_employee(user, company, office_id=office.id)
 
         request_data = self.get_request_data(office.id, user.id)
 
@@ -106,7 +106,7 @@ class TestVehicleCreate:
         office = create_office(company)
 
         user = create_user()
-        employee = create_employee(user, company)
+        employee = create_employee(user, company, office_id=office.id)
 
         request_data = self.get_request_data(office.id, user.id)
         response = client.post(
@@ -159,7 +159,7 @@ class TestVehicleCreate:
         office = create_office(another_company)
 
         user = create_user()
-        employee = create_employee(user, company)
+        employee = create_employee(user, company, office_id=office.id)
 
         request_data = self.get_request_data(office.id, user.id)
         response = client.post(
@@ -193,7 +193,7 @@ class TestVehicleCreate:
         office = create_office(company)
 
         user = create_user()
-        employee = create_employee(user, company)
+        employee = create_employee(user, company, office_id=office.id)
 
         request_data = self.get_request_data(office.id, 999)
         response = client.post(
@@ -211,9 +211,28 @@ class TestVehicleCreate:
         office = create_office(company)
 
         user = create_user()
-        employee = create_employee(user, company)
+        employee = create_employee(user, company, office_id=office.id)
 
         request_data = self.get_request_data(999, user.id)
+        response = client.post(
+            url_for('company.vehicle_create', company_id=company.id),
+            json=request_data,
+            headers=get_auth_headers(owner),
+        )
+
+        assert response.status_code == 400
+
+    def test_create_vehicle_with_driver_from_different_offices(self, client, create_user, create_company, create_office,
+                                                               create_employee):
+        owner = create_user(email='owner@gmail.com')
+        company = create_company(owner)
+        office1 = create_office(company)
+        office2 = create_office(company)
+
+        user = create_user()
+        employee = create_employee(user, company, office_id=office1.id)
+
+        request_data = self.get_request_data(office2.id, user.id)
         response = client.post(
             url_for('company.vehicle_create', company_id=company.id),
             json=request_data,

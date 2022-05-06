@@ -44,6 +44,7 @@ class VehicleSchema(ma.SQLAlchemyAutoSchema):
         office_id = data.get('office_id')
         driver_id = data.get('driver_id')
 
+        office = None
         if office_id:
             office = Office.query.filter_by(id=office_id).one_or_none()
 
@@ -59,6 +60,8 @@ class VehicleSchema(ma.SQLAlchemyAutoSchema):
                     field_name='office_id',
                 )
 
+        user = None
+        employer = None
         if driver_id:
             user = User.query.filter_by(id=driver_id).one_or_none()
 
@@ -69,8 +72,14 @@ class VehicleSchema(ma.SQLAlchemyAutoSchema):
                 )
 
             employer = user.employer
-            if not user.employer or employer.company_id != company_id:
+            if not employer or employer.company_id != company_id:
                 raise marshmallow.ValidationError(
                     message='User is not employee',
                     field_name='driver_id',
                 )
+
+        if (employer and office) and (employer.office_id != office.id):
+            raise marshmallow.ValidationError(
+                message='Driver and vehicle have to be from the same office',
+                field_name='driver_id',
+            )
