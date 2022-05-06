@@ -5,6 +5,7 @@ from company.resources.company import CompanyCreate, CompanyRetrieve, CompanyUpd
 from company.resources.employee import EmployeeCreate, EmployeeList, EmployeeRetrieve, EmployeeUpdate, EmployeeDelete
 from company.resources.office import OfficeCreate, OfficeList, OfficeRetrieve, OfficeUpdate, OfficeDelete, \
     AssignEmployeeToOffice, MyOffice
+from company.resources.vehicles import VehicleCreate
 
 bp = Blueprint('company', __name__)
 api = Api(bp)
@@ -26,3 +27,5 @@ api.add_resource(OfficeUpdate, '/companies/<int:company_id>/offices/<int:office_
 api.add_resource(OfficeDelete, '/companies/<int:company_id>/offices/<int:office_id>/', endpoint='office_delete')
 api.add_resource(AssignEmployeeToOffice, '/companies/<int:company_id>/offices/<int:office_id>/assign-employee/', endpoint='office_assign_employee')
 api.add_resource(MyOffice, '/my-office/', endpoint='my_office')
+
+api.add_resource(VehicleCreate, '/companies/<int:company_id>/vehicles/', endpoint='vehicle_create')

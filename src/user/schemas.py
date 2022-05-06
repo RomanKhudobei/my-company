@@ -45,7 +45,7 @@ class UserSchema(ma.SQLAlchemyAutoSchema):
         model = User
         # include_fk = True
         include_relationships = True
-        exclude = ['password']
+        exclude = ['password', 'vehicles']
 
 
 class ChangePasswordSchema(ma.Schema):

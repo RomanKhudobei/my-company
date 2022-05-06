@@ -25,7 +25,7 @@ class OfficeSchema(ma.SQLAlchemyAutoSchema):
         model = Office
         include_fk = True
         include_relationships = True
-        exclude = ['employees', 'company']
+        exclude = ['employees', 'company', 'vehicles']
 
     @validates('company_id')
     def validate_company_id(self, company_id):

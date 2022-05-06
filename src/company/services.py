@@ -1,10 +1,11 @@
 from sqlalchemy import or_
 
 from app.db import db
-from company.models import Company, Employee, Office
+from company.models import Company, Employee, Office, Vehicle
 from company.schemas.company import CompanySchema
 from company.schemas.employee import EmployeeCreateSchema, AssignEmployeeToOfficeSchema
 from company.schemas.office import OfficeSchema
+from company.schemas.vehicle import VehicleSchema
 from user.models import User
 from user.schemas import UserSchema
 
@@ -145,3 +146,23 @@ def assign_employee_to_office(office, employee):
 
     employee.office_id = office.id
     db.session.commit()
+
+
+def create_vehicle(company, name, model, licence_plate, year_of_manufacture, office_id, driver_id):
+    validated_data = VehicleSchema(
+        context={'company': company},
+    ).load({
+        'company_id': company.id,
+        'name': name,
+        'model': model,
+        'licence_plate': licence_plate,
+        'year_of_manufacture': year_of_manufacture,
+        'office_id': office_id,
+        'driver_id': driver_id,
+    })
+
+    vehicle = Vehicle(**validated_data)
+
+    db.session.add(vehicle)
+    db.session.commit()
+    return vehicle
