@@ -1,7 +1,6 @@
 import pytest
 from flask import url_for
 
-from app.db import db
 from company.models import Employee
 from tests.e2e.auth.fixtures import get_auth_headers
 from user.models import User
@@ -9,7 +8,7 @@ from user.models import User
 
 class TestEmployeeCreate:
 
-    def test_employee_create(self, client, create_user, create_company):
+    def test_employee_create(self, db, client, create_user, create_company):
         owner = create_user()
         company = create_company(owner)
 
@@ -28,7 +27,7 @@ class TestEmployeeCreate:
         assert len(company.employees) == 1
         assert user.employer.id == company.id
 
-    def test_employee_create_already_employed(self, client, create_user, create_company):
+    def test_employee_create_already_employed(self, db, client, create_user, create_company):
         owner = create_user()
         company = create_company(owner)
 
@@ -49,7 +48,7 @@ class TestEmployeeCreate:
 
         assert response.status_code == 400
 
-    def test_employee_create_not_by_owner(self, client, create_user, create_company):
+    def test_employee_create_not_by_owner(self, db, client, create_user, create_company):
         owner = create_user()
         company = create_company(owner)
 
@@ -64,7 +63,7 @@ class TestEmployeeCreate:
 
         assert response.status_code == 403
 
-    def test_employee_create_user_not_exist(self, client, create_user, create_company):
+    def test_employee_create_user_not_exist(self, db, client, create_user, create_company):
         owner = create_user()
         company = create_company(owner)
 
@@ -77,7 +76,7 @@ class TestEmployeeCreate:
 
         assert response.status_code == 400
 
-    def test_create_owner_as_employee(self, client, create_user, create_company):
+    def test_create_owner_as_employee(self, db, client, create_user, create_company):
         owner = create_user()
         company = create_company(owner)
 
@@ -90,7 +89,7 @@ class TestEmployeeCreate:
 
         assert response.status_code == 400
 
-    def test_create_owner_of_another_company_as_employee(self, client, create_user, create_company):
+    def test_create_owner_of_another_company_as_employee(self, db, client, create_user, create_company):
         owner = create_user()
         company = create_company(owner)
 
@@ -109,7 +108,7 @@ class TestEmployeeCreate:
 
 class TestEmployeeList:
 
-    def test_employee_list(self, client, create_user, create_company, create_employee):
+    def test_employee_list(self, db, client, create_user, create_company, create_employee):
         users1 = [create_user(email=f'test1{i}@gmail.com') for i in range(5)]
         users2 = [create_user(email=f'test2{i}@gmail.com') for i in range(5)]
 
@@ -144,7 +143,7 @@ class TestEmployeeList:
             ('leclerc', 1),
         ]
     )
-    def test_employee_list_search(self, client, create_user, create_company, create_employee, query, result_count):
+    def test_employee_list_search(self, db, client, create_user, create_company, create_employee, query, result_count):
         users = [
             create_user(
                 first_name='John',
@@ -178,7 +177,7 @@ class TestEmployeeList:
 
         assert len(response.json) == result_count
 
-    def test_employee_list_search_with_wrong_parameter(self, client, create_user, create_company, create_employee):
+    def test_employee_list_search_with_wrong_parameter(self, db, client, create_user, create_company, create_employee):
         users = [
             create_user(
                 first_name='John',
@@ -215,7 +214,7 @@ class TestEmployeeList:
 
 class TestEmployeeRetrieve:
 
-    def test_employee_retrieve(self, client, create_user, create_company, create_employee):
+    def test_employee_retrieve(self, db, client, create_user, create_company, create_employee):
         user = create_user()
         owner = create_user(email='owner@gmail.com')
         company = create_company(owner)
@@ -229,7 +228,7 @@ class TestEmployeeRetrieve:
         assert response.status_code == 200
         assert response.json.get('id') == employee.id
 
-    def test_employee_retrieve_without_authentication(self, client, create_user, create_company, create_employee):
+    def test_employee_retrieve_without_authentication(self, db, client, create_user, create_company, create_employee):
         user = create_user()
         owner = create_user(email='owner@gmail.com')
         company = create_company(owner)
@@ -241,7 +240,7 @@ class TestEmployeeRetrieve:
 
         assert response.status_code == 401
 
-    def test_employee_retrieve_not_exist(self, client, create_user, create_company, create_employee):
+    def test_employee_retrieve_not_exist(self, db, client, create_user, create_company, create_employee):
         owner = create_user(email='owner@gmail.com')
         company = create_company(owner)
 
@@ -252,7 +251,7 @@ class TestEmployeeRetrieve:
 
         assert response.status_code == 404
 
-    def test_employee_retrieve_company_not_exist(self, client, create_user, create_company, create_employee):
+    def test_employee_retrieve_company_not_exist(self, db, client, create_user, create_company, create_employee):
         owner = create_user(email='owner@gmail.com')
         response = client.get(
             url_for('company.employee_retrieve', company_id=999, employee_id=999),
@@ -261,7 +260,7 @@ class TestEmployeeRetrieve:
 
         assert response.status_code == 404
 
-    def test_employee_retrieve_not_by_company_owner(self, client, create_user, create_company, create_employee):
+    def test_employee_retrieve_not_by_company_owner(self, db, client, create_user, create_company, create_employee):
         owner = create_user(email='owner@gmail.com')
         company = create_company(owner)
 
@@ -281,7 +280,7 @@ class TestEmployeeRetrieve:
 
 class TestEmployeeUpdate:
 
-    def test_employee_update(self, client, create_user, create_company, create_employee):
+    def test_employee_update(self, db, client, create_user, create_company, create_employee):
         owner = create_user(email='owner@gmail.com')
         company = create_company(owner)
 
@@ -304,7 +303,7 @@ class TestEmployeeUpdate:
         assert employee.user.first_name == 'updated'
         assert employee.user.last_name == 'updated'
 
-    def test_employee_update_with_missed_fields(self, client, create_user, create_company, create_employee):
+    def test_employee_update_with_missed_fields(self, db, client, create_user, create_company, create_employee):
         owner = create_user(email='owner@gmail.com')
         company = create_company(owner)
 
@@ -342,7 +341,7 @@ class TestEmployeeUpdate:
             )
             assert response.status_code == 400
 
-    def test_update_employee_id(self, client, create_user, create_company, create_employee):
+    def test_update_employee_id(self, db, client, create_user, create_company, create_employee):
         owner = create_user(email='owner@gmail.com')
         company = create_company(owner)
 
@@ -361,7 +360,7 @@ class TestEmployeeUpdate:
 
         assert response.status_code == 400
 
-    def test_employee_update_email(self, client, create_user, create_company, create_employee):
+    def test_employee_update_email(self, db, client, create_user, create_company, create_employee):
         owner = create_user(email='owner@gmail.com')
         company = create_company(owner)
 
@@ -380,7 +379,7 @@ class TestEmployeeUpdate:
 
         assert response.status_code == 400
 
-    def test_employee_update_password(self, client, create_user, create_company, create_employee):
+    def test_employee_update_password(self, db, client, create_user, create_company, create_employee):
         owner = create_user(email='owner@gmail.com')
         company = create_company(owner)
 
@@ -399,7 +398,7 @@ class TestEmployeeUpdate:
 
         assert response.status_code == 400
 
-    def test_employee_update_employer(self, client, create_user, create_company, create_employee):
+    def test_employee_update_employer(self, db, client, create_user, create_company, create_employee):
         owner = create_user(email='owner@gmail.com')
         company = create_company(owner)
 
@@ -418,7 +417,7 @@ class TestEmployeeUpdate:
 
         assert response.status_code == 400
 
-    def test_employee_update_without_authentication(self, client, create_user, create_company, create_employee):
+    def test_employee_update_without_authentication(self, db, client, create_user, create_company, create_employee):
         owner = create_user(email='owner@gmail.com')
         company = create_company(owner)
 
@@ -435,7 +434,7 @@ class TestEmployeeUpdate:
 
         assert response.status_code == 401
 
-    def test_employee_update_not_by_employer(self, client, create_user, create_company, create_employee):
+    def test_employee_update_not_by_employer(self, db, client, create_user, create_company, create_employee):
         owner = create_user(email='owner@gmail.com')
         company = create_company(owner)
 
@@ -456,7 +455,7 @@ class TestEmployeeUpdate:
 
         assert response.status_code == 403
 
-    def test_employee_update_by_employee_himself(self, client, create_user, create_company, create_employee):
+    def test_employee_update_by_employee_himself(self, db, client, create_user, create_company, create_employee):
         owner = create_user(email='owner@gmail.com')
         company = create_company(owner)
 
@@ -477,7 +476,7 @@ class TestEmployeeUpdate:
 
 class TestEmployeeDelete:
 
-    def test_employee_delete(self, client, create_user, create_company, create_employee):
+    def test_employee_delete(self, db, client, create_user, create_company, create_employee):
         owner = create_user(email='owner@gmail.com')
         company = create_company(owner)
 
@@ -493,7 +492,7 @@ class TestEmployeeDelete:
         assert Employee.query.filter_by(company_id=company.id, user_id=user.id).count() == 0
         assert User.query.count() == 1  # only owner left after employee deletion
 
-    def test_employee_delete_without_authentication(self, client, create_user, create_company, create_employee):
+    def test_employee_delete_without_authentication(self, db, client, create_user, create_company, create_employee):
         owner = create_user(email='owner@gmail.com')
         company = create_company(owner)
 
@@ -506,7 +505,7 @@ class TestEmployeeDelete:
 
         assert response.status_code == 401
 
-    def test_employee_delete_not_by_employer(self, client, create_user, create_company, create_employee):
+    def test_employee_delete_not_by_employer(self, db, client, create_user, create_company, create_employee):
         owner = create_user(email='owner@gmail.com')
         company = create_company(owner)
 
@@ -523,7 +522,7 @@ class TestEmployeeDelete:
 
         assert response.status_code == 403
 
-    def test_employee_delete_by_himself(self, client, create_user, create_company, create_employee):
+    def test_employee_delete_by_himself(self, db, client, create_user, create_company, create_employee):
         owner = create_user(email='owner@gmail.com')
         company = create_company(owner)
 
@@ -537,7 +536,7 @@ class TestEmployeeDelete:
 
         assert response.status_code == 403
 
-    def test_delete_not_existing_employee(self, client, create_user, create_company, create_employee):
+    def test_delete_not_existing_employee(self, db, client, create_user, create_company, create_employee):
         owner = create_user(email='owner@gmail.com')
         company = create_company(owner)
 
@@ -548,7 +547,7 @@ class TestEmployeeDelete:
 
         assert response.status_code == 404
 
-    def test_employee_delete_from_not_existing_company(self, client, create_user, create_company, create_employee):
+    def test_employee_delete_from_not_existing_company(self, db, client, create_user, create_company, create_employee):
         owner = create_user(email='owner@gmail.com')
 
         response = client.delete(

@@ -47,3 +47,25 @@ class VehicleList(Resource):
         )
 
         return VehicleSchema().dump(vehicles, many=True), 200
+
+
+class VehicleUpdate(Resource):
+
+    @jwt_required()
+    @company_owner('company_id')
+    def put(self, company_id, vehicle_id):
+        company = services.get_company_by_id(company_id)
+
+        if not company:
+            abort(404)
+
+        vehicle = services.get_vehicle_by_id(vehicle_id)
+
+        if vehicle is None:
+            abort(404)
+
+        if vehicle.company_id != company.id:
+            abort(404)
+
+        services.update_vehicle(vehicle, request.json)
+        return VehicleSchema().dump(vehicle), 200

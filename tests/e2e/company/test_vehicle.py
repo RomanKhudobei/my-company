@@ -407,3 +407,275 @@ class TestVehicleList:
 
         assert response.status_code == 200
         assert len(response.json) == result_count
+
+
+class TestVehicleUpdate:
+
+    def test_update_vehicle(self, client, create_user, create_company, create_office, create_employee, create_vehicle,
+                            assign_employee_to_office, db):
+        owner = create_user(email='owner@gmail.com')
+        company = create_company(owner)
+
+        office = create_office(company)
+
+        user = create_user()
+        employee = create_employee(user, company)
+        assign_employee_to_office(office, employee)
+
+        vehicle = create_vehicle(company, office_id=office.id, driver_id=user.id)
+
+        new_office = create_office(company)
+
+        new_driver = create_user(email='newdriver@gmail.com')
+        employee = create_employee(new_driver, company)
+        assign_employee_to_office(new_office, employee)
+
+        request_data = {
+            'name': vehicle.name,
+            'model': 'Fabia',
+            'licence_plate': vehicle.licence_plate,
+            'year_of_manufacture': vehicle.year_of_manufacture,
+            'office_id': new_office.id,
+            'driver_id': new_driver.id,
+        }
+
+        response = client.put(
+            url_for('company.vehicle_update', company_id=company.id, vehicle_id=vehicle.id),
+            json=request_data,
+            headers=get_auth_headers(owner),
+        )
+
+        assert response.status_code == 200
+        db.session.refresh(vehicle)
+
+        assert vehicle.model == 'Fabia'
+        assert vehicle.office_id == new_office.id
+        assert vehicle.driver_id == new_driver.id
+
+    def test_update_vehicle_company_id(self, client, create_user, create_company, create_office, create_employee, create_vehicle,
+                                       assign_employee_to_office, db):
+        owner = create_user(email='owner@gmail.com')
+        company = create_company(owner)
+
+        office = create_office(company)
+
+        user = create_user()
+        employee = create_employee(user, company)
+        assign_employee_to_office(office, employee)
+
+        vehicle = create_vehicle(company, office_id=office.id, driver_id=user.id)
+
+        request_data = {
+            'company_id': 999,
+            'name': vehicle.name,
+            'model': 'Fabia',
+            'licence_plate': vehicle.licence_plate,
+            'year_of_manufacture': vehicle.year_of_manufacture,
+            'office_id': office.id,
+            'driver_id': user.id,
+        }
+
+        response = client.put(
+            url_for('company.vehicle_update', company_id=company.id, vehicle_id=vehicle.id),
+            json=request_data,
+            headers=get_auth_headers(owner),
+        )
+
+        assert response.status_code == 400
+
+    def test_update_vehicle_remove_office_and_driver(self, client, create_user, create_company, create_office,
+                                                     create_employee, create_vehicle,
+                                                     assign_employee_to_office, db):
+        owner = create_user(email='owner@gmail.com')
+        company = create_company(owner)
+
+        office = create_office(company)
+
+        user = create_user()
+        employee = create_employee(user, company)
+        assign_employee_to_office(office, employee)
+
+        vehicle = create_vehicle(company, office_id=office.id, driver_id=user.id)
+
+        request_data = {
+            'name': vehicle.name,
+            'model': 'Fabia',
+            'licence_plate': vehicle.licence_plate,
+            'year_of_manufacture': vehicle.year_of_manufacture,
+            'office_id': None,
+            'driver_id': None,
+        }
+
+        response = client.put(
+            url_for('company.vehicle_update', company_id=company.id, vehicle_id=vehicle.id),
+            json=request_data,
+            headers=get_auth_headers(owner),
+        )
+
+        assert response.status_code == 200
+
+        db.session.refresh(vehicle)
+        assert vehicle.office_id is None
+        assert vehicle.driver_id is None
+
+    def test_update_vehicle_set_employee_from_different_office(self, client, create_user, create_company, create_office,
+                                                               create_employee, create_vehicle,
+                                                               assign_employee_to_office, db):
+        owner = create_user(email='owner@gmail.com')
+        company = create_company(owner)
+
+        office = create_office(company)
+
+        user = create_user()
+        employee = create_employee(user, company)
+        assign_employee_to_office(office, employee)
+
+        vehicle = create_vehicle(company, office_id=office.id, driver_id=user.id)
+
+        new_office = create_office(company)
+
+        request_data = {
+            'name': vehicle.name,
+            'model': 'Fabia',
+            'licence_plate': vehicle.licence_plate,
+            'year_of_manufacture': vehicle.year_of_manufacture,
+            'office_id': new_office.id,
+            'driver_id': user.id,
+        }
+
+        response = client.put(
+            url_for('company.vehicle_update', company_id=company.id, vehicle_id=vehicle.id),
+            json=request_data,
+            headers=get_auth_headers(owner),
+        )
+
+        assert response.status_code == 400
+
+    def test_update_vehicle_that_belongs_to_another_company(self, client, create_user, create_company, create_office,
+                                                            create_employee, create_vehicle,
+                                                            assign_employee_to_office, db):
+        owner = create_user(email='owner@gmail.com')
+        company = create_company(owner)
+
+        owner2 = create_user(email='owner2@gmail.com')
+        company2 = create_company(owner2)
+
+        office = create_office(company)
+
+        user = create_user()
+        employee = create_employee(user, company)
+        assign_employee_to_office(office, employee)
+
+        vehicle = create_vehicle(company, office_id=office.id, driver_id=user.id)
+
+        request_data = {
+            'name': vehicle.name,
+            'model': 'Fabia',
+            'licence_plate': vehicle.licence_plate,
+            'year_of_manufacture': vehicle.year_of_manufacture,
+            'office_id': office.id,
+            'driver_id': user.id,
+        }
+
+        response = client.put(
+            url_for('company.vehicle_update', company_id=company.id, vehicle_id=vehicle.id),
+            json=request_data,
+            headers=get_auth_headers(owner2),
+        )
+
+        assert response.status_code == 403
+
+    def test_update_non_exiting_company_vehicle(self, client, create_user, create_company, create_office,
+                                                create_employee, create_vehicle,
+                                                assign_employee_to_office, db):
+        owner = create_user(email='owner@gmail.com')
+        company = create_company(owner)
+
+        owner2 = create_user(email='owner2@gmail.com')
+        company2 = create_company(owner2)
+
+        office = create_office(company)
+
+        user = create_user()
+        employee = create_employee(user, company)
+        assign_employee_to_office(office, employee)
+
+        vehicle = create_vehicle(company, office_id=office.id, driver_id=user.id)
+
+        request_data = {
+            'name': vehicle.name,
+            'model': 'Fabia',
+            'licence_plate': vehicle.licence_plate,
+            'year_of_manufacture': vehicle.year_of_manufacture,
+            'office_id': office.id,
+            'driver_id': user.id,
+        }
+
+        response = client.put(
+            url_for('company.vehicle_update', company_id=company2.id, vehicle_id=vehicle.id),
+            json=request_data,
+            headers=get_auth_headers(owner2),
+        )
+
+        assert response.status_code == 404
+
+    def test_update_vehicle_without_authentication(self, client, create_user, create_company, create_office,
+                                                   create_employee, create_vehicle,
+                                                   assign_employee_to_office, db):
+        owner = create_user(email='owner@gmail.com')
+        company = create_company(owner)
+
+        office = create_office(company)
+
+        user = create_user()
+        employee = create_employee(user, company)
+        assign_employee_to_office(office, employee)
+
+        vehicle = create_vehicle(company, office_id=office.id, driver_id=user.id)
+
+        request_data = {
+            'name': vehicle.name,
+            'model': 'Fabia',
+            'licence_plate': vehicle.licence_plate,
+            'year_of_manufacture': vehicle.year_of_manufacture,
+            'office_id': office.id,
+            'driver_id': user.id,
+        }
+
+        response = client.put(
+            url_for('company.vehicle_update', company_id=company.id, vehicle_id=vehicle.id),
+            json=request_data,
+        )
+
+        assert response.status_code == 401
+
+    def test_update_vehicle_by_driver(self, client, create_user, create_company, create_office,
+                                      create_employee, create_vehicle,
+                                      assign_employee_to_office, db):
+        owner = create_user(email='owner@gmail.com')
+        company = create_company(owner)
+
+        office = create_office(company)
+
+        user = create_user()
+        employee = create_employee(user, company)
+        assign_employee_to_office(office, employee)
+
+        vehicle = create_vehicle(company, office_id=office.id, driver_id=user.id)
+
+        request_data = {
+            'name': vehicle.name,
+            'model': 'Fabia',
+            'licence_plate': vehicle.licence_plate,
+            'year_of_manufacture': vehicle.year_of_manufacture,
+            'office_id': office.id,
+            'driver_id': user.id,
+        }
+
+        response = client.put(
+            url_for('company.vehicle_update', company_id=company.id, vehicle_id=vehicle.id),
+            json=request_data,
+            headers=get_auth_headers(user)
+        )
+
+        assert response.status_code == 403

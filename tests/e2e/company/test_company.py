@@ -1,13 +1,12 @@
 from flask import url_for
 
-from app.db import db
 from company.models import Company
 from tests.e2e.auth.fixtures import get_auth_headers
 
 
 class TestCompanyCreate:
 
-    def test_company_create(self, client, create_user):
+    def test_company_create(self, db, client, create_user):
         user = create_user()
         request_data = {
             'name': 'Test',
@@ -26,7 +25,7 @@ class TestCompanyCreate:
 
         assert Company.query.filter_by(owner=user).one_or_none()
 
-    def test_company_create_twice(self, client, create_user):
+    def test_company_create_twice(self, db, client, create_user):
         user = create_user()
         request_data = {
             'name': 'Test',
@@ -38,14 +37,14 @@ class TestCompanyCreate:
         response = client.post(url_for('company.create'), json=request_data, headers=get_auth_headers(user))
         assert response.status_code == 400
 
-    def test_company_create_without_authentication(self, client, create_user):
+    def test_company_create_without_authentication(self, db, client, create_user):
         request_data = {
             'name': 'Test',
         }
         response = client.post(url_for('company.create'), json=request_data)
         assert response.status_code == 401
 
-    def test_create_company_by_employee(self, client, create_user, create_company, create_employee):
+    def test_create_company_by_employee(self, db, client, create_user, create_company, create_employee):
         user = create_user()
 
         owner = create_user(email='owner@gmail.com')
@@ -65,7 +64,7 @@ class TestCompanyCreate:
 
 class TestCompanyRetrieve:
 
-    def test_company_retrieve(self, client, create_user, create_company):
+    def test_company_retrieve(self, db, client, create_user, create_company):
         user = create_user()
         company = create_company(user)
 
@@ -74,7 +73,7 @@ class TestCompanyRetrieve:
         assert response.status_code == 200
         assert response.json.get('id') == company.id
 
-    def test_company_retrieve_not_by_owner(self, client, create_user, create_company):
+    def test_company_retrieve_not_by_owner(self, db, client, create_user, create_company):
         user = create_user()
         company = create_company(user)
 
@@ -86,7 +85,7 @@ class TestCompanyRetrieve:
 
         assert response.status_code == 403
 
-    def test_company_retrieve_without_authentication(self, client, create_user, create_company):
+    def test_company_retrieve_without_authentication(self, db, client, create_user, create_company):
         user = create_user()
         company = create_company(user)
 
@@ -94,7 +93,7 @@ class TestCompanyRetrieve:
 
         assert response.status_code == 401
 
-    def test_company_retrieve_not_exist(self, client, create_user, create_company):
+    def test_company_retrieve_not_exist(self, db, client, create_user, create_company):
         user = create_user()
         response = client.get(url_for('company.retrieve', company_id=999), headers=get_auth_headers(user))
         assert response.status_code == 404
@@ -102,7 +101,7 @@ class TestCompanyRetrieve:
 
 class TestCompanyUpdate:
 
-    def test_company_update(self, client, create_user, create_company):
+    def test_company_update(self, db, client, create_user, create_company):
         user = create_user()
         company = create_company(user)
 
@@ -123,7 +122,7 @@ class TestCompanyUpdate:
         assert company.name == request_data.get('name') == response.json.get('name')
         assert company.address == request_data.get('address') == response.json.get('address')
 
-    def test_company_update_company_id(self, client, create_user, create_company):
+    def test_company_update_company_id(self, db, client, create_user, create_company):
         user = create_user()
         company = create_company(user)
         company_id = company.id
@@ -145,7 +144,7 @@ class TestCompanyUpdate:
 
         assert company.id == company_id
 
-    def test_company_update_owner_id(self, client, create_user, create_company):
+    def test_company_update_owner_id(self, db, client, create_user, create_company):
         user = create_user()
         company = create_company(user)
 
@@ -162,7 +161,7 @@ class TestCompanyUpdate:
 
         assert response.status_code == 400
 
-    def test_company_update_by_another_user(self, client, create_user, create_company):
+    def test_company_update_by_another_user(self, db, client, create_user, create_company):
         user = create_user()
         company_data = {
             'name': 'Test',
@@ -188,7 +187,7 @@ class TestCompanyUpdate:
         assert company.name == company_data.get('name')
         assert company.address == company_data.get('address')
 
-    def test_company_update_not_exist(self, client, create_user, create_company):
+    def test_company_update_not_exist(self, db, client, create_user, create_company):
         user = create_user()
 
         request_data = {
@@ -203,7 +202,7 @@ class TestCompanyUpdate:
 
         assert response.status_code == 404
 
-    def test_company_update_with_empty_name(self, client, create_user, create_company):
+    def test_company_update_with_empty_name(self, db, client, create_user, create_company):
         user = create_user()
         company_data = {
             'name': 'Test',
@@ -249,7 +248,7 @@ class TestCompanyUpdate:
 
         assert response.status_code == 400
 
-    def test_company_update_with_unknown_field(self, client, create_user, create_company):
+    def test_company_update_with_unknown_field(self, db, client, create_user, create_company):
         user = create_user()
         company_data = {
             'name': 'Test',

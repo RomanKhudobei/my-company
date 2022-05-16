@@ -178,3 +178,19 @@ def get_company_vehicles(company, office_id=None, driver_id=None):
         vehicles = vehicles.filter_by(driver_id=driver_id)
 
     return vehicles
+
+
+def get_vehicle_by_id(vehicle_id):
+    return Vehicle.query.filter_by(id=vehicle_id).one_or_none()
+
+
+def update_vehicle(vehicle, updated_data):
+    validated_data = VehicleSchema(
+        exclude=['company_id'],
+        context={'company_id': vehicle.company_id},
+    ).load(updated_data)
+
+    for field, value in validated_data.items():
+        setattr(vehicle, field, value)
+
+    db.session.commit()

@@ -1,6 +1,5 @@
 from flask import url_for
 
-from app.db import db
 from tests.e2e.auth.fixtures import get_auth_headers
 from tests.e2e.user.fixtures import get_user_data
 from user.models import User
@@ -8,7 +7,7 @@ from user.models import User
 
 class TestUserCreate:
 
-    def test_create_user(self, client):
+    def test_create_user(self, db, client):
         request_data = get_user_data()
         response = client.post(url_for('user.create'), json=request_data)
 
@@ -17,7 +16,7 @@ class TestUserCreate:
         user = User.query.filter_by(email=response.json['email']).first()
         assert user
 
-    def test_create_user_with_already_exist_email(self, client):
+    def test_create_user_with_already_exist_email(self, db, client):
         request_data = get_user_data()
         response = client.post(url_for('user.create'), json=request_data)
 
@@ -30,7 +29,7 @@ class TestUserCreate:
 
         assert User.query.filter_by(email=request_data['email']).count() == 1
 
-    def test_create_user_with_invalid_email(self, client):
+    def test_create_user_with_invalid_email(self, db, client):
         request_data = get_user_data()
         request_data['email'] = 'not_valid_email'
         response = client.post(url_for('user.create'), json=request_data)
@@ -39,7 +38,7 @@ class TestUserCreate:
 
         assert response.json.get('email')   # error message
 
-    def test_create_user_with_missed_fields(self, client):
+    def test_create_user_with_missed_fields(self, db, client):
         data = get_user_data()
         data.pop('password')
         data.pop('repeat_password')
@@ -66,7 +65,7 @@ class TestUserCreate:
 
             assert User.query.count() == 0
 
-    def test_create_user_with_missed_password_fields(self, client):
+    def test_create_user_with_missed_password_fields(self, db, client):
         request_data = get_user_data()
 
         request_data['password'] = ''
@@ -95,7 +94,7 @@ class TestUserCreate:
 
 class TestUserRetrieve:
 
-    def test_user_retrieve(self, client, create_user):
+    def test_user_retrieve(self, db, client, create_user):
         user = create_user()
 
         response = client.get(url_for('user.retrieve'), headers=get_auth_headers(user))
@@ -103,14 +102,14 @@ class TestUserRetrieve:
         assert response.status_code == 200
         assert response.json.get('id') == user.id
 
-    def test_user_retrieve_without_authentication(self, client, create_user):
+    def test_user_retrieve_without_authentication(self, db, client, create_user):
         response = client.get(url_for('user.retrieve'))
         assert response.status_code == 401
 
 
 class TestUserUpdate:
 
-    def test_user_update(self, client, create_user):
+    def test_user_update(self, db, client, create_user):
         user = create_user()
 
         request_data = {
@@ -129,7 +128,7 @@ class TestUserUpdate:
         assert user.first_name == 'Updated first name'
         assert user.last_name == 'Updated last name'
 
-    def test_user_update_not_all_fields(self, client, create_user):
+    def test_user_update_not_all_fields(self, db, client, create_user):
         user = create_user()
 
         request_data = {
@@ -143,7 +142,7 @@ class TestUserUpdate:
 
         assert response.status_code == 400
 
-    def test_user_update_company(self, client, create_user):
+    def test_user_update_company(self, db, client, create_user):
         user = create_user()
 
         request_data = {
@@ -159,7 +158,7 @@ class TestUserUpdate:
 
         assert response.status_code == 400
 
-    def test_user_update_password(self, client, create_user):
+    def test_user_update_password(self, db, client, create_user):
         user = create_user()
 
         request_data = {
@@ -175,7 +174,7 @@ class TestUserUpdate:
 
         assert response.status_code == 400
 
-    def test_user_update_unknown_field(self, client, create_user):
+    def test_user_update_unknown_field(self, db, client, create_user):
         user = create_user()
 
         request_data = {
@@ -191,7 +190,7 @@ class TestUserUpdate:
 
         assert response.status_code == 400
 
-    def test_user_update_without_authentication(self, client, create_user):
+    def test_user_update_without_authentication(self, db, client, create_user):
         request_data = {
             'first_name': 'Updated first name',
             'last_name': 'Updated last name',
@@ -206,7 +205,7 @@ class TestUserUpdate:
 
 class TestChangePassword:
 
-    def test_change_password(self, client, create_user):
+    def test_change_password(self, db, client, create_user):
         user = create_user(password='testabc123')
 
         request_data = {
@@ -222,7 +221,7 @@ class TestChangePassword:
 
         assert user.password == 'testabc999'
 
-    def test_change_password_without_authentication(self, client, create_user):
+    def test_change_password_without_authentication(self, db, client, create_user):
         request_data = {
             'old_password': 'testabc123',
             'new_password': 'testabc999',
@@ -232,7 +231,7 @@ class TestChangePassword:
 
         assert response.status_code == 401
 
-    def test_change_password_with_missed_fields(self, client, create_user):
+    def test_change_password_with_missed_fields(self, db, client, create_user):
         user = create_user(password='testabc123')
 
         request_data = {

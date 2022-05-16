@@ -66,7 +66,7 @@ class OfficeRetrieve(Resource):
             abort(404)
 
         if office.company_id != company.id:
-            abort(403)
+            abort(404)
 
         return OfficeSchema().dump(office), 200
 
@@ -87,7 +87,7 @@ class OfficeUpdate(Resource):
             abort(404)
 
         if office.company_id != company.id:
-            abort(403)
+            abort(404)
 
         services.update_office(office, request.json)
         return OfficeSchema().dump(office), 200
@@ -109,7 +109,7 @@ class OfficeDelete(Resource):
             abort(404)
 
         if office.company_id != company.id:
-            abort(403)
+            abort(404)
 
         services.delete_office(office)
         return 200
@@ -131,7 +131,7 @@ class AssignEmployeeToOffice(Resource):
             abort(404)
 
         if office.company_id != company.id:
-            abort(403)
+            abort(404)
 
         employee = services.get_employee_by_id(request.json.get('employee_id'))
 

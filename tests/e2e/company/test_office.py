@@ -1,14 +1,13 @@
 import pytest
 from flask import url_for
 
-from app.db import db
-from company.models import Office
+from company.models import Office, Employee
 from tests.e2e.auth.fixtures import get_auth_headers
 
 
 class TestOfficeCreate:
 
-    def test_create_office(self, client, create_user, create_company, create_location):
+    def test_create_office(self, db, client, create_user, create_company, create_location):
         owner = create_user(email='owner@gmail.com')
         company = create_company(owner)
 
@@ -32,7 +31,7 @@ class TestOfficeCreate:
 
         assert Office.query.filter_by(company_id=company.id).count() == 1
 
-    def test_create_multiple_offices(self, client, create_user, create_company, create_location):
+    def test_create_multiple_offices(self, db, client, create_user, create_company, create_location):
         owner = create_user(email='owner@gmail.com')
         company = create_company(owner)
 
@@ -64,7 +63,7 @@ class TestOfficeCreate:
 
         assert Office.query.filter_by(company_id=company.id).count() == 2
 
-    def test_create_office_with_missed_fields(self, client, create_user, create_company, create_location):
+    def test_create_office_with_missed_fields(self, db, client, create_user, create_company, create_location):
         owner = create_user(email='owner@gmail.com')
         company = create_company(owner)
 
@@ -106,7 +105,7 @@ class TestOfficeCreate:
 
         assert response.status_code == 400
 
-    def test_create_office_with_missed_location_fields(self, client, create_user, create_company, create_location):
+    def test_create_office_with_missed_location_fields(self, db, client, create_user, create_company, create_location):
         owner = create_user(email='owner@gmail.com')
         company = create_company(owner)
 
@@ -148,7 +147,7 @@ class TestOfficeCreate:
 
         assert response.status_code == 400
 
-    def test_create_office_with_not_existing_location(self, client, create_user, create_company, create_location):
+    def test_create_office_with_not_existing_location(self, db, client, create_user, create_company, create_location):
         owner = create_user(email='owner@gmail.com')
         company = create_company(owner)
 
@@ -170,7 +169,7 @@ class TestOfficeCreate:
 
         assert response.status_code == 400
 
-    def test_create_office_with_unrelated_location(self, client, create_user, create_company, create_location,
+    def test_create_office_with_unrelated_location(self, db, client, create_user, create_company, create_location,
                                                    create_country):
         owner = create_user(email='owner@gmail.com')
         company = create_company(owner)
@@ -194,7 +193,7 @@ class TestOfficeCreate:
 
         assert response.status_code == 400
 
-    def test_create_office_without_authentication(self, client, create_user, create_company, create_location):
+    def test_create_office_without_authentication(self, db, client, create_user, create_company, create_location):
         owner = create_user(email='owner@gmail.com')
         company = create_company(owner)
 
@@ -215,7 +214,7 @@ class TestOfficeCreate:
 
         assert response.status_code == 401
 
-    def test_create_office_with_not_existing_company(self, client, create_user, create_company, create_location):
+    def test_create_office_with_not_existing_company(self, db, client, create_user, create_company, create_location):
         owner = create_user(email='owner@gmail.com')
 
         country, region, city = create_location()
@@ -236,7 +235,7 @@ class TestOfficeCreate:
 
         assert response.status_code == 404
 
-    def test_create_office_by_employee(self, client, create_user, create_company, create_employee, create_location):
+    def test_create_office_by_employee(self, db, client, create_user, create_company, create_employee, create_location):
         owner = create_user(email='owner@gmail.com')
         company = create_company(owner)
 
@@ -264,7 +263,7 @@ class TestOfficeCreate:
 
 class TestOfficeList:
 
-    def test_list_offices(self, client, create_user, create_company, create_office):
+    def test_list_offices(self, db, client, create_user, create_company, create_office):
         owner = create_user(email='owner@gmail.com')
         company = create_company(owner)
 
@@ -296,7 +295,7 @@ class TestOfficeList:
             ('?country_id=1&region_id=2', 0),
         ]
     )
-    def test_office_list_search_by_location(self, client, create_user, create_company, create_office, query,
+    def test_office_list_search_by_location(self, db, client, create_user, create_company, create_office, query,
                                             result_count, create_country, create_region, create_city):
         owner = create_user(email='owner@gmail.com')
         company = create_company(owner)
@@ -323,7 +322,7 @@ class TestOfficeList:
 
         assert len(response.json) == result_count
 
-    def test_list_offices_without_authentication(self, client, create_user, create_company, create_office):
+    def test_list_offices_without_authentication(self, db, client, create_user, create_company, create_office):
         owner = create_user(email='owner@gmail.com')
         company = create_company(owner)
 
@@ -334,7 +333,7 @@ class TestOfficeList:
 
         assert response.status_code == 401
 
-    def test_list_offices_by_employee(self, client, create_user, create_company, create_office, create_employee):
+    def test_list_offices_by_employee(self, db, client, create_user, create_company, create_office, create_employee):
         owner = create_user(email='owner@gmail.com')
         company = create_company(owner)
 
@@ -349,7 +348,7 @@ class TestOfficeList:
 
         assert len(response.json) == 5
 
-    def test_list_offices_not_by_owner_or_employee(self, client, create_user, create_company, create_office):
+    def test_list_offices_not_by_owner_or_employee(self, db, client, create_user, create_company, create_office):
         owner = create_user(email='owner@gmail.com')
         company = create_company(owner)
 
@@ -364,7 +363,7 @@ class TestOfficeList:
 
 class TestOfficeRetrieve:
 
-    def test_retrieve_office(self, client, create_user, create_company, create_office):
+    def test_retrieve_office(self, db, client, create_user, create_company, create_office):
         owner = create_user(email='owner@gmail.com')
         company = create_company(owner)
         office = create_office(company)
@@ -377,7 +376,7 @@ class TestOfficeRetrieve:
         assert response.status_code == 200
         assert response.json.get('id') == office.id
 
-    def test_retrieve_office_without_authentication(self, client, create_user, create_company, create_office):
+    def test_retrieve_office_without_authentication(self, db, client, create_user, create_company, create_office):
         owner = create_user(email='owner@gmail.com')
         company = create_company(owner)
         office = create_office(company)
@@ -388,7 +387,7 @@ class TestOfficeRetrieve:
 
         assert response.status_code == 401
 
-    def test_retrieve_office_not_by_owner(self, client, create_user, create_company, create_office):
+    def test_retrieve_office_not_by_owner(self, db, client, create_user, create_company, create_office):
         owner = create_user(email='owner@gmail.com')
         company = create_company(owner)
         office = create_office(company)
@@ -400,7 +399,7 @@ class TestOfficeRetrieve:
 
         assert response.status_code == 403
 
-    def test_retrieve_office_by_owner_of_another_company(self, client, create_user, create_company, create_office):
+    def test_retrieve_office_by_owner_of_another_company(self, db, client, create_user, create_company, create_office):
         owner = create_user(email='owner@gmail.com')
         company = create_company(owner)
         office = create_office(company)
@@ -414,7 +413,7 @@ class TestOfficeRetrieve:
 
         assert response.status_code == 403
 
-    def test_retrieve_office_by_employee(self, client, create_user, create_company, create_office, create_employee):
+    def test_retrieve_office_by_employee(self, db, client, create_user, create_company, create_office, create_employee):
         owner = create_user(email='owner@gmail.com')
         company = create_company(owner)
         office = create_office(company)
@@ -429,7 +428,7 @@ class TestOfficeRetrieve:
 
         assert response.status_code == 403
 
-    def test_retrieve_not_existing_office(self, client, create_user, create_company, create_office):
+    def test_retrieve_not_existing_office(self, db, client, create_user, create_company, create_office):
         owner = create_user(email='owner@gmail.com')
         company = create_company(owner)
 
@@ -440,7 +439,7 @@ class TestOfficeRetrieve:
 
         assert response.status_code == 404
 
-    def test_retrieve_office_from_not_existing_company(self, client, create_user, create_company, create_office):
+    def test_retrieve_office_from_not_existing_company(self, db, client, create_user, create_company, create_office):
         owner = create_user(email='owner@gmail.com')
         company = create_company(owner)
 
@@ -454,7 +453,7 @@ class TestOfficeRetrieve:
 
 class TestOfficeUpdate:
 
-    def test_update_office(self, client, create_user, create_company, create_office, create_location):
+    def test_update_office(self, db, client, create_user, create_company, create_office, create_location):
         owner = create_user(email='owner@gmail.com')
         company = create_company(owner)
 
@@ -485,7 +484,7 @@ class TestOfficeUpdate:
         assert response.json.get('region', {}).get('id') == region.id == office.region_id
         assert response.json.get('city', {}).get('id') == city.id == office.city_id
 
-    def test_update_office_with_missing_fields(self, client, create_user, create_company, create_office, create_location):
+    def test_update_office_with_missing_fields(self, db, client, create_user, create_company, create_office, create_location):
         owner = create_user(email='owner@gmail.com')
         company = create_company(owner)
 
@@ -527,7 +526,7 @@ class TestOfficeUpdate:
             )
             assert response.status_code == 400
 
-    def test_update_office_without_authentication(self, client, create_user, create_company, create_office, create_location):
+    def test_update_office_without_authentication(self, db, client, create_user, create_company, create_office, create_location):
         owner = create_user(email='owner@gmail.com')
         company = create_company(owner)
 
@@ -549,7 +548,7 @@ class TestOfficeUpdate:
 
         assert response.status_code == 401
 
-    def test_update_office_by_employee(self, client, create_user, create_company, create_office, create_location,
+    def test_update_office_by_employee(self, db, client, create_user, create_company, create_office, create_location,
                                        create_employee):
         owner = create_user(email='owner@gmail.com')
         company = create_company(owner)
@@ -576,7 +575,7 @@ class TestOfficeUpdate:
 
         assert response.status_code == 403
 
-    def test_update_office_by_another_owner(self, client, create_user, create_company, create_office, create_location):
+    def test_update_office_by_another_owner(self, db, client, create_user, create_company, create_office, create_location):
         owner = create_user(email='owner@gmail.com')
         company = create_company(owner)
 
@@ -602,7 +601,7 @@ class TestOfficeUpdate:
 
         assert response.status_code == 403
 
-    def test_update_office_by_another_user(self, client, create_user, create_company, create_office, create_location):
+    def test_update_office_by_another_user(self, db, client, create_user, create_company, create_office, create_location):
         owner = create_user(email='owner@gmail.com')
         company = create_company(owner)
 
@@ -627,7 +626,7 @@ class TestOfficeUpdate:
 
         assert response.status_code == 403
 
-    def test_update_office_company(self, client, create_user, create_company, create_office, create_location):
+    def test_update_office_company(self, db, client, create_user, create_company, create_office, create_location):
         owner = create_user(email='owner@gmail.com')
         company = create_company(owner)
 
@@ -651,7 +650,7 @@ class TestOfficeUpdate:
 
         assert response.status_code == 400
 
-    def test_update_office_id(self, client, create_user, create_company, create_office, create_location):
+    def test_update_office_id(self, db, client, create_user, create_company, create_office, create_location):
         owner = create_user(email='owner@gmail.com')
         company = create_company(owner)
 
@@ -698,7 +697,7 @@ class TestOfficeUpdate:
             headers=get_auth_headers(owner),
         )
 
-        assert response.status_code == 403
+        assert response.status_code == 404
 
 
 class TestOfficeDelete:
@@ -775,7 +774,7 @@ class TestOfficeDelete:
             headers=get_auth_headers(owner),
         )
 
-        assert response.status_code == 403
+        assert response.status_code == 404
 
     def test_delete_not_existing_office(self, client, create_user, create_company):
         owner = create_user(email='owner@gmail.com')
@@ -908,7 +907,7 @@ class TestAssignEmployeeToOffice:
             headers=get_auth_headers(owner),
         )
 
-        assert response.status_code == 403
+        assert response.status_code == 404
 
         db.session.refresh(employee)
         assert employee.office_id is None

@@ -30,7 +30,7 @@ class VehicleSchema(ma.SQLAlchemyAutoSchema):
 
     @validates('company_id')
     def validate_company_id(self, company_id):
-        company = self.context.get('company_id') or Company.query.filter_by(id=company_id).one_or_none()
+        company = self.context.get('company') or Company.query.filter_by(id=company_id).one_or_none()
 
         if company is None:
             raise marshmallow.ValidationError(
@@ -40,7 +40,7 @@ class VehicleSchema(ma.SQLAlchemyAutoSchema):
 
     @marshmallow.validates_schema(skip_on_field_errors=True)
     def validate(self, data, **kwargs):
-        company_id = data.get('company_id')
+        company_id = data.get('company_id') or self.context.get('company_id')
         office_id = data.get('office_id')
         driver_id = data.get('driver_id')
 
