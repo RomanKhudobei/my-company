@@ -409,6 +409,90 @@ class TestVehicleList:
         assert len(response.json) == result_count
 
 
+class TestVehicleRetrieve:
+
+    def test_retrieve_vehicle(self, client, create_user, create_company, create_office, create_employee,
+                              create_vehicle, assign_employee_to_office):
+        owner = create_user(email='owner@gmail.com')
+        company = create_company(owner)
+
+        office = create_office(company)
+
+        user = create_user()
+        employee = create_employee(user, company)
+        assign_employee_to_office(office, employee)
+
+        vehicle = create_vehicle(company, office_id=office.id, driver_id=user.id)
+
+        response = client.get(
+            url_for('company.vehicle_retrieve', company_id=company.id, vehicle_id=vehicle.id),
+            headers=get_auth_headers(owner),
+        )
+
+        assert response.status_code == 200
+        assert response.json.get('id') == vehicle.id
+
+    def test_retrieve_vehicle_without_authentication(self, client, create_user, create_company, create_office, create_employee,
+                                                     create_vehicle, assign_employee_to_office):
+        owner = create_user(email='owner@gmail.com')
+        company = create_company(owner)
+
+        office = create_office(company)
+
+        user = create_user()
+        employee = create_employee(user, company)
+        assign_employee_to_office(office, employee)
+
+        vehicle = create_vehicle(company, office_id=office.id, driver_id=user.id)
+
+        response = client.get(
+            url_for('company.vehicle_retrieve', company_id=company.id, vehicle_id=vehicle.id),
+        )
+
+        assert response.status_code == 401
+
+    def test_retrieve_non_existing_vehicle(self, client, create_user, create_company, create_office, create_employee,
+                                           create_vehicle, assign_employee_to_office):
+        owner = create_user(email='owner@gmail.com')
+        company = create_company(owner)
+
+        office = create_office(company)
+
+        user = create_user()
+        employee = create_employee(user, company)
+        assign_employee_to_office(office, employee)
+
+        vehicle = create_vehicle(company, office_id=office.id, driver_id=user.id)
+
+        response = client.get(
+            url_for('company.vehicle_retrieve', company_id=company.id, vehicle_id=999),
+            headers=get_auth_headers(owner),
+        )
+        assert response.status_code == 404
+
+    def test_retrieve_not_company_vehicle(self, client, create_user, create_company, create_office, create_employee,
+                                          create_vehicle, assign_employee_to_office):
+        owner = create_user(email='owner@gmail.com')
+        company = create_company(owner)
+
+        owner2 = create_user(email='owner2@gmail.com')
+        company2 = create_company(owner2)
+
+        office = create_office(company)
+
+        user = create_user()
+        employee = create_employee(user, company)
+        assign_employee_to_office(office, employee)
+
+        vehicle = create_vehicle(company, office_id=office.id, driver_id=user.id)
+
+        response = client.get(
+            url_for('company.vehicle_retrieve', company_id=company2.id, vehicle_id=vehicle.id),
+            headers=get_auth_headers(owner2),
+        )
+        assert response.status_code == 404
+
+
 class TestVehicleUpdate:
 
     def test_update_vehicle(self, client, create_user, create_company, create_office, create_employee, create_vehicle,
