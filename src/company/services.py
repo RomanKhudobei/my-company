@@ -199,3 +199,7 @@ def update_vehicle(vehicle, updated_data):
 def delete_vehicle(vehicle):
     db.session.delete(vehicle)
     db.session.commit()
+
+
+def get_user_vehicles(user):
+    return Vehicle.query.filter_by(driver_id=user.id)

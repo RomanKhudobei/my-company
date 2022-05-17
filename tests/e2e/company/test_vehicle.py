@@ -864,3 +864,45 @@ class TestVehicleDelete:
         )
 
         assert response.status_code == 404
+
+
+class TestMyVehicles:
+
+    def test_my_vehicles(self, client, create_user, create_company, create_office, create_employee, create_vehicle,
+                         assign_employee_to_office):
+        owner = create_user(email='owner@gmail.com')
+        company = create_company(owner)
+
+        office = create_office(company)
+
+        user = create_user()
+        employee = create_employee(user, company)
+        assign_employee_to_office(office, employee)
+
+        create_vehicle(company, office_id=office.id, driver_id=user.id)
+        create_vehicle(company, office_id=office.id, driver_id=user.id)
+
+        owner2 = create_user(email='owner2@gmail.com')
+        company2 = create_company(owner2)
+
+        office2 = create_office(company2)
+
+        user2 = create_user(email='2@gmail.com')
+        employee2 = create_employee(user2, company2)
+        assign_employee_to_office(office2, employee2)
+
+        create_vehicle(company, office_id=office2.id, driver_id=user2.id)
+
+        response = client.get(url_for('company.my_vehicles'), headers=get_auth_headers(user))
+
+        assert response.status_code == 200
+        assert len(response.json) == 2
+
+    def test_my_vehicles_empty(self, client, create_user, create_company, create_office, create_employee, create_vehicle,
+                               assign_employee_to_office):
+        user = create_user()
+
+        response = client.get(url_for('company.my_vehicles'), headers=get_auth_headers(user))
+
+        assert response.status_code == 200
+        assert len(response.json) == 0

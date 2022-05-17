@@ -1,5 +1,5 @@
 from flask import request
-from flask_jwt_extended import jwt_required
+from flask_jwt_extended import jwt_required, current_user
 from flask_restful import Resource, abort
 
 from company import services
@@ -112,3 +112,11 @@ class VehicleDelete(Resource):
 
         services.delete_vehicle(vehicle)
         return 200
+
+
+class MyVehicles(Resource):
+
+    @jwt_required()
+    def get(self):
+        vehicles = services.get_user_vehicles(current_user)
+        return VehicleSchema().dump(vehicles, many=True), 200
