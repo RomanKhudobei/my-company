@@ -1,6 +1,7 @@
 import pytest
 from flask import url_for
 
+from company.models import Vehicle
 from tests.e2e.auth.fixtures import get_auth_headers
 
 
@@ -763,3 +764,103 @@ class TestVehicleUpdate:
         )
 
         assert response.status_code == 403
+
+
+class TestVehicleDelete:
+
+    def test_delete_vehicle(self, client, create_user, create_company, create_office, create_employee, create_vehicle,
+                            assign_employee_to_office):
+        owner = create_user(email='owner@gmail.com')
+        company = create_company(owner)
+
+        office = create_office(company)
+
+        user = create_user()
+        employee = create_employee(user, company)
+        assign_employee_to_office(office, employee)
+
+        vehicle = create_vehicle(company, office_id=office.id, driver_id=user.id)
+
+        response = client.delete(
+            url_for('company.vehicle_delete', company_id=company.id, vehicle_id=vehicle.id),
+            headers=get_auth_headers(owner),
+        )
+
+        assert response.status_code == 200
+
+        assert Vehicle.query.count() == 0
+
+    def test_delete_vehicle_without_authentication(self, client, create_user, create_company, create_vehicle):
+        owner = create_user(email='owner@gmail.com')
+        company = create_company(owner)
+
+        vehicle = create_vehicle(company)
+
+        response = client.delete(
+            url_for('company.vehicle_delete', company_id=company.id, vehicle_id=vehicle.id),
+        )
+
+        assert response.status_code == 401
+
+    def test_delete_vehicle_by_driver(self, client, create_user, create_company, create_office, create_employee, create_vehicle,
+                            assign_employee_to_office):
+        owner = create_user(email='owner@gmail.com')
+        company = create_company(owner)
+
+        office = create_office(company)
+
+        user = create_user()
+        employee = create_employee(user, company)
+        assign_employee_to_office(office, employee)
+
+        vehicle = create_vehicle(company, office_id=office.id, driver_id=user.id)
+
+        response = client.delete(
+            url_for('company.vehicle_delete', company_id=company.id, vehicle_id=vehicle.id),
+            headers=get_auth_headers(user),
+        )
+
+        assert response.status_code == 403
+
+    def test_delete_vehicle_of_another_company(self, client, create_user, create_company, create_office, create_employee, create_vehicle,
+                                               assign_employee_to_office):
+        owner = create_user(email='owner@gmail.com')
+        company = create_company(owner)
+
+        owner2 = create_user(email='owner2@gmail.com')
+        company2 = create_company(owner2)
+
+        office = create_office(company)
+
+        user = create_user()
+        employee = create_employee(user, company)
+        assign_employee_to_office(office, employee)
+
+        vehicle = create_vehicle(company, office_id=office.id, driver_id=user.id)
+
+        response = client.delete(
+            url_for('company.vehicle_delete', company_id=company.id, vehicle_id=vehicle.id),
+            headers=get_auth_headers(owner2),
+        )
+
+        assert response.status_code == 403
+
+    def test_delete_not_existing_vehicle(self, client, create_user, create_company, create_office, create_employee, create_vehicle,
+                                         assign_employee_to_office):
+        owner = create_user(email='owner@gmail.com')
+        company = create_company(owner)
+
+        office = create_office(company)
+
+        user = create_user()
+        employee = create_employee(user, company)
+        assign_employee_to_office(office, employee)
+
+        vehicle = create_vehicle(company, office_id=office.id, driver_id=user.id)
+
+        response = client.delete(
+            url_for('company.vehicle_delete', company_id=company.id, vehicle_id=999),
+            headers=get_auth_headers(owner),
+        )
+
+        assert response.status_code == 404

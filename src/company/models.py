@@ -82,10 +82,10 @@ class Office(db.Model):
     company = db.relationship(
         'Company',
         uselist=False,
-        cascade='all,delete',
         backref=db.backref(
             'offices',
             lazy=True,
+            cascade='all,delete',
         ),
     )
 
@@ -138,10 +138,10 @@ class Vehicle(db.Model):
     company = db.relationship(
         'Company',
         uselist=False,
-        cascade='all,delete',
         backref=db.backref(
             'vehicles',
             lazy=True,
+            cascade='all,delete',
         ),
     )
     office = db.relationship(

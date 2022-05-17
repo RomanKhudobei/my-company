@@ -194,3 +194,8 @@ def update_vehicle(vehicle, updated_data):
         setattr(vehicle, field, value)
 
     db.session.commit()
+
+
+def delete_vehicle(vehicle):
+    db.session.delete(vehicle)
+    db.session.commit()

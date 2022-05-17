@@ -90,3 +90,25 @@ class VehicleUpdate(Resource):
 
         services.update_vehicle(vehicle, request.json)
         return VehicleSchema().dump(vehicle), 200
+
+
+class VehicleDelete(Resource):
+
+    @jwt_required()
+    @company_owner('company_id')
+    def delete(self, company_id, vehicle_id):
+        company = services.get_company_by_id(company_id)
+
+        if not company:
+            abort(404)
+
+        vehicle = services.get_vehicle_by_id(vehicle_id)
+
+        if vehicle is None:
+            abort(404)
+
+        if vehicle.company_id != company.id:
+            abort(404)
+
+        services.delete_vehicle(vehicle)
+        return 200
