@@ -243,7 +243,32 @@ class TestVehicleCreate:
 
         assert response.status_code == 400
 
-    # TODO: add tests when one user has multiple vehicles
+    def test_create_multiple_vehicles_for_one_driver(self, client, create_user, create_company, create_office,
+                                                     create_employee):
+        owner = create_user(email='owner@gmail.com')
+        company = create_company(owner)
+        office = create_office(company)
+
+        user = create_user()
+        employee = create_employee(user, company, office_id=office.id)
+
+        request_data = self.get_request_data(office.id, user.id)
+        response = client.post(
+            url_for('company.vehicle_create', company_id=company.id),
+            json=request_data,
+            headers=get_auth_headers(owner),
+        )
+        assert response.status_code == 201
+        assert response.json.get('id') is not None
+
+        request_data = self.get_request_data(office.id, user.id)
+        response = client.post(
+            url_for('company.vehicle_create', company_id=company.id),
+            json=request_data,
+            headers=get_auth_headers(owner),
+        )
+        assert response.status_code == 201
+        assert response.json.get('id') is not None
 
 
 class TestVehicleList:
