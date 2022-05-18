@@ -68,6 +68,26 @@ class EmployeeUpdate(Resource):
         return EmployeeCreateSchema(exclude=['user_id']).dump(employee), 200
 
 
+class EmployeeSetPassword(Resource):
+
+    @jwt_required()
+    @company_owner('company_id')
+    def post(self, company_id, employee_id):
+        company = services.get_company_by_id(company_id)
+        if not company:
+            abort(404)
+
+        employee = services.get_employee_by_id(employee_id)
+        if not employee:
+            abort(404)
+
+        if employee.company_id != company_id:
+            abort(404)
+
+        services.set_employee_password(employee, request.json.get('password'))
+        return 200
+
+
 class EmployeeDelete(Resource):
 
     @jwt_required()

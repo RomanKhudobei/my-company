@@ -7,7 +7,7 @@ from company.schemas.employee import EmployeeCreateSchema, AssignEmployeeToOffic
 from company.schemas.office import OfficeSchema
 from company.schemas.vehicle import VehicleSchema
 from user.models import User
-from user.schemas import UserSchema
+from user.schemas import UserSchema, ChangePasswordSchema
 
 
 def register_company(user, name):
@@ -76,6 +76,17 @@ def update_employee(employee, updated_data):
 
     for field, value in validated_data.items():
         setattr(employee.user, field, value)
+
+    db.session.commit()
+
+
+def set_employee_password(employee, password):
+    validated_data = ChangePasswordSchema(partial=True).load({
+        'new_password': password,
+        'repeat_password': password,
+    })
+
+    employee.user.password = validated_data.get('new_password')
 
     db.session.commit()
 

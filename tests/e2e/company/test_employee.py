@@ -474,6 +474,159 @@ class TestEmployeeUpdate:
         assert response.status_code == 403
 
 
+class TestEmployeeSetPassword:
+
+    def test_employee_set_password(self, client, create_user, create_company, create_employee, db):
+        owner = create_user(email='owner@gmail.com')
+        company = create_company(owner)
+
+        user = create_user()
+        employee = create_employee(user, company)
+
+        request_data = {
+            'password': 'new_password',
+        }
+        response = client.post(
+            url_for('company.employee_set_password', company_id=company.id, employee_id=employee.id),
+            json=request_data,
+            headers=get_auth_headers(owner),
+        )
+
+        assert response.status_code == 200
+
+        db.session.refresh(user)
+        assert user.password == 'new_password'
+
+    def test_employee_set_empty_password(self, client, create_user, create_company, create_employee, db):
+        owner = create_user(email='owner@gmail.com')
+        company = create_company(owner)
+
+        user = create_user()
+        employee = create_employee(user, company)
+
+        request_data = {
+            'password': '',
+        }
+        response = client.post(
+            url_for('company.employee_set_password', company_id=company.id, employee_id=employee.id),
+            json=request_data,
+            headers=get_auth_headers(owner),
+        )
+
+        assert response.status_code == 400
+
+    def test_employee_set_null_password(self, client, create_user, create_company, create_employee, db):
+        owner = create_user(email='owner@gmail.com')
+        company = create_company(owner)
+
+        user = create_user()
+        employee = create_employee(user, company)
+
+        request_data = {
+            'password': None,
+        }
+        response = client.post(
+            url_for('company.employee_set_password', company_id=company.id, employee_id=employee.id),
+            json=request_data,
+            headers=get_auth_headers(owner),
+        )
+
+        assert response.status_code == 400
+
+    def test_employee_set_password_missed(self, client, create_user, create_company, create_employee, db):
+        owner = create_user(email='owner@gmail.com')
+        company = create_company(owner)
+
+        user = create_user()
+        employee = create_employee(user, company)
+
+        request_data = {}
+        response = client.post(
+            url_for('company.employee_set_password', company_id=company.id, employee_id=employee.id),
+            json=request_data,
+            headers=get_auth_headers(owner),
+        )
+
+        assert response.status_code == 400
+
+    def test_employee_set_password_not_by_employer(self, client, create_user, create_company, create_employee, db):
+        owner = create_user(email='owner@gmail.com')
+        company = create_company(owner)
+
+        owner2 = create_user(email='owner2@gmail.com')
+        company2 = create_company(owner2)
+
+        user = create_user()
+        employee = create_employee(user, company)
+
+        request_data = {
+            'password': 'new_password',
+        }
+        response = client.post(
+            url_for('company.employee_set_password', company_id=company.id, employee_id=employee.id),
+            json=request_data,
+            headers=get_auth_headers(owner2),
+        )
+
+        assert response.status_code == 403
+
+    def test_set_password_for_foreign_employee(self, client, create_user, create_company, create_employee, db):
+        owner = create_user(email='owner@gmail.com')
+        company = create_company(owner)
+
+        owner2 = create_user(email='owner2@gmail.com')
+        company2 = create_company(owner2)
+
+        user = create_user()
+        employee = create_employee(user, company)
+
+        request_data = {
+            'password': 'new_password',
+        }
+        response = client.post(
+            url_for('company.employee_set_password', company_id=company2.id, employee_id=employee.id),
+            json=request_data,
+            headers=get_auth_headers(owner2),
+        )
+
+        assert response.status_code == 404
+
+    def test_employee_set_password_by_random_user(self, client, create_user, create_company, create_employee, db):
+        owner = create_user(email='owner@gmail.com')
+        company = create_company(owner)
+
+        random_user = create_user(email='random@gmail.com')
+
+        user = create_user()
+        employee = create_employee(user, company)
+
+        request_data = {
+            'password': 'new_password',
+        }
+        response = client.post(
+            url_for('company.employee_set_password', company_id=company.id, employee_id=employee.id),
+            json=request_data,
+            headers=get_auth_headers(random_user),
+        )
+
+        assert response.status_code == 403
+
+    def test_set_password_for_non_existing_employee(self, client, create_user, create_company, create_employee, db):
+        owner = create_user(email='owner@gmail.com')
+        company = create_company(owner)
+
+        request_data = {
+            'password': 'new_password',
+        }
+        response = client.post(
+            url_for('company.employee_set_password', company_id=company.id, employee_id=999),
+            json=request_data,
+            headers=get_auth_headers(owner),
+        )
+
+        assert response.status_code == 404
+
+
 class TestEmployeeDelete:
 
     def test_employee_delete(self, db, client, create_user, create_company, create_employee):
