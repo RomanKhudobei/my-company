@@ -48,6 +48,9 @@ class EmployeeRetrieve(Resource):
         if not employee:
             abort(404)
 
+        if employee.company_id != company_id:
+            abort(404)
+
         return EmployeeCreateSchema(exclude=['user_id']).dump(employee), 200
 
 
@@ -62,6 +65,9 @@ class EmployeeUpdate(Resource):
 
         employee = services.get_employee_by_id(employee_id)
         if not employee:
+            abort(404)
+
+        if employee.company_id != company_id:
             abort(404)
 
         services.update_employee(employee, request.json)
@@ -99,6 +105,9 @@ class EmployeeDelete(Resource):
 
         employee = services.get_employee_by_id(employee_id)
         if not employee:
+            abort(404)
+
+        if employee.company_id != company_id:
             abort(404)
 
         services.delete_employee(employee)
