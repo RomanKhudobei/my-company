@@ -25,6 +25,21 @@ class TestCompanyCreate:
 
         assert Company.query.filter_by(owner=user).one_or_none()
 
+    def test_company_create_with_missed_fields(self, db, client, create_user):
+        user = create_user()
+
+        request_data = {'name': ''}
+        response = client.post(url_for('company.create'), json=request_data, headers=get_auth_headers(user))
+        assert response.status_code == 400
+
+        request_data = {'name': None}
+        response = client.post(url_for('company.create'), json=request_data, headers=get_auth_headers(user))
+        assert response.status_code == 400
+
+        request_data = {}
+        response = client.post(url_for('company.create'), json=request_data, headers=get_auth_headers(user))
+        assert response.status_code == 400
+
     def test_company_create_twice(self, db, client, create_user):
         user = create_user()
         request_data = {
