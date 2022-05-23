@@ -1,0 +1,1021 @@
+{
+	"info": {
+		"_postman_id": "2835b407-9f0a-4b8d-87a5-321af4dc2f71",
+		"name": "my-company (flask skill up)",
+		"description": "Training project",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "5279909"
+	},
+	"item": [
+		{
+			"name": "user",
+			"item": [
+				{
+					"name": "Create",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"first_name\": \"John\",\n    \"last_name\": \"Doe\",\n    \"email\": \"john.doe@gmail.com\",\n    \"password\": \"testabc123\",\n    \"repeat_password\": \"testabc123\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/users/",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"users",
+								""
+							]
+						},
+						"description": "Create (register) a user"
+					},
+					"response": []
+				},
+				{
+					"name": "Retreive",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/users/me/",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"users",
+								"me",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"first_name\": \"Johnathan\",\n    \"last_name\": \"Doethan\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/users/me/",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"users",
+								"me",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Change Password",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"old_password\": \"testabc123\",\n    \"new_password\": \"123abctest\",\n    \"repeat_password\": \"123abctest\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/users/me/change-password/",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"users",
+								"me",
+								"change-password",
+								""
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "auth",
+			"item": [
+				{
+					"name": "Login",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"john.doe@gmail.com\",\n    \"password\": \"testabc123\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/login/",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"login",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Refresh",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// JWT generation script adapted from",
+									"// https://gist.github.com/corbanb/db03150abbe899285d6a86cc480f674d",
+									"",
+									"var jwtSecret = pm.environment.get('SECRET_KEY') || ''",
+									"var authenticatedUserId = 1;",
+									"",
+									"// Set headers for JWT",
+									"var header = {",
+									"\t'typ': 'JWT',",
+									"\t'alg': 'HS256'",
+									"};",
+									"",
+									"// Prepare timestamp in seconds",
+									"var currentTimestamp = Math.floor(Date.now() / 1000)",
+									"",
+									"var data = {",
+									"\t'iss': pm.environment.get('jwt_iss') || '',",
+									"\t'ist': pm.environment.get('jwt_ist') || '',",
+									"\t'iat': currentTimestamp,",
+									"    'sub': authenticatedUserId,",
+									"\t'exp': currentTimestamp + 30, // expiry time is 30 seconds from time of creation",
+									"\t'jti': 'jwt_nonce',",
+									"    'type': 'refresh'",
+									"}",
+									"",
+									"",
+									"function base64url(source) {",
+									"    // Encode in classical base64",
+									"    encodedSource = CryptoJS.enc.Base64.stringify(source)",
+									"    ",
+									"    // Remove padding equal characters",
+									"    encodedSource = encodedSource.replace(/=+$/, '')",
+									"    ",
+									"    // Replace characters according to base64url specifications",
+									"    encodedSource = encodedSource.replace(/\\+/g, '-')",
+									"    encodedSource = encodedSource.replace(/\\//g, '_')",
+									"    ",
+									"    return encodedSource",
+									"}",
+									"",
+									"// encode header",
+									"var stringifiedHeader = CryptoJS.enc.Utf8.parse(JSON.stringify(header))",
+									"var encodedHeader = base64url(stringifiedHeader)",
+									"",
+									"// encode data",
+									"var stringifiedData = CryptoJS.enc.Utf8.parse(JSON.stringify(data))",
+									"var encodedData = base64url(stringifiedData)",
+									"",
+									"// build token",
+									"var token = `${encodedHeader}.${encodedData}`",
+									"",
+									"// sign token",
+									"var signature = CryptoJS.HmacSHA256(token, jwtSecret)",
+									"signature = base64url(signature)",
+									"var signedToken = `${token}.${signature}`",
+									"",
+									"pm.environment.set('jwt_refresh_token', signedToken)",
+									"console.log('Signed and encoded JWT', signedToken)"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt_refresh_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/token/refresh/",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"token",
+								"refresh",
+								""
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Location",
+			"item": [
+				{
+					"name": "Country",
+					"item": [
+						{
+							"name": "List",
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{BASE_URL}}/countries/",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"countries",
+										""
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Region",
+					"item": [
+						{
+							"name": "List",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{BASE_URL}}/countries/4/regions/",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"countries",
+										"4",
+										"regions",
+										""
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "City",
+					"item": [
+						{
+							"name": "List",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{BASE_URL}}/countries/4/regions/13/cities/",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"countries",
+										"4",
+										"regions",
+										"13",
+										"cities",
+										""
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Company",
+			"item": [
+				{
+					"name": "Company",
+					"item": [
+						{
+							"name": "Create",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\": \"MyCompany\",\n    \"owner_id\": 1\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/companies/",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"companies",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Retrieve",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{BASE_URL}}/companies/1/",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"companies",
+										"1",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Update",
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\": \"MyCompany Inc.\",\n    \"address\": \"Ukraine, Ternopil, 4 Symonenka Street\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/companies/1/",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"companies",
+										"1",
+										""
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Employee",
+					"item": [
+						{
+							"name": "Create",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"user_id\": 2\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/companies/1/employees/",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"companies",
+										"1",
+										"employees",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "List",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{BASE_URL}}/companies/1/employees/?search=john",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"companies",
+										"1",
+										"employees",
+										""
+									],
+									"query": [
+										{
+											"key": "search",
+											"value": "john"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Retrieve",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{BASE_URL}}/companies/1/employees/1/",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"companies",
+										"1",
+										"employees",
+										"1",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Update",
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"first_name\": \"Johnathan\",\n    \"last_name\": \"Smithathan\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/companies/1/employees/1/",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"companies",
+										"1",
+										"employees",
+										"1",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Set Password",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"password\": \"testabc123\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/companies/1/employees/1/set-password/",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"companies",
+										"1",
+										"employees",
+										"1",
+										"set-password",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{BASE_URL}}/companies/1/employees/1/",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"companies",
+										"1",
+										"employees",
+										"1",
+										""
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Office",
+					"item": [
+						{
+							"name": "Create",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\": \"Office1\",\n    \"address\": \"45 Test Street\",\n    \"country_id\": 4,\n    \"region_id\": 13,\n    \"city_id\": 1\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/companies/1/offices/",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"companies",
+										"1",
+										"offices",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "List",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{BASE_URL}}/companies/1/offices/",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"companies",
+										"1",
+										"offices",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Retrieve",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{BASE_URL}}/companies/1/offices/1/",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"companies",
+										"1",
+										"offices",
+										"1",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Update",
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\": \"Main office\",\n    \"address\": \"45 Test Street\",\n    \"country_id\": 4,\n    \"region_id\": 13,\n    \"city_id\": 1\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/companies/1/offices/1/",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"companies",
+										"1",
+										"offices",
+										"1",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{BASE_URL}}/companies/1/offices/1/",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"companies",
+										"1",
+										"offices",
+										"1",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Assign Employee",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"employee_id\": 1\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/companies/1/offices/1/assign-employee/",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"companies",
+										"1",
+										"offices",
+										"1",
+										"assign-employee",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "My Office",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{BASE_URL}}/my-office/",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"my-office",
+										""
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Vehicle",
+					"item": [
+						{
+							"name": "Create",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\": \"BMW\",\n    \"model\": \"M3 E36\",\n    \"licence_plate\": \"ВО 3366 ЕС\",\n    \"year_of_manufacture\": 1998,\n    \"office_id\": null,\n    \"driver_id\": null\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/companies/1/vehicles/",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"companies",
+										"1",
+										"vehicles",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "List",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{BASE_URL}}/companies/1/vehicles/",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"companies",
+										"1",
+										"vehicles",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Retrieve",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{BASE_URL}}/companies/1/vehicles/1/",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"companies",
+										"1",
+										"vehicles",
+										"1",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Update",
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\": \"BMW\",\n    \"model\": \"M3 E36\",\n    \"licence_plate\": \"ВО 3636 ЕС\",\n    \"year_of_manufacture\": 1998,\n    \"office_id\": null,\n    \"driver_id\": null\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/companies/1/vehicles/1/",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"companies",
+										"1",
+										"vehicles",
+										"1",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{BASE_URL}}/companies/1/vehicles/1/",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"companies",
+										"1",
+										"vehicles",
+										"1",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "My Vehicles",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{BASE_URL}}/my-vehicles/",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"my-vehicles",
+										""
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{jwt_signed}}",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// JWT generation script adapted from",
+					"// https://gist.github.com/corbanb/db03150abbe899285d6a86cc480f674d",
+					"",
+					"var jwtSecret = pm.environment.get('SECRET_KEY') || ''",
+					"var authenticatedUserId = 1;",
+					"",
+					"// Set headers for JWT",
+					"var header = {",
+					"\t'typ': 'JWT',",
+					"\t'alg': 'HS256'",
+					"};",
+					"",
+					"// Prepare timestamp in seconds",
+					"var currentTimestamp = Math.floor(Date.now() / 1000)",
+					"",
+					"var data = {",
+					"\t'iss': pm.environment.get('jwt_iss') || '',",
+					"\t'ist': pm.environment.get('jwt_ist') || '',",
+					"\t'iat': currentTimestamp,",
+					"    'sub': authenticatedUserId,",
+					"\t'exp': currentTimestamp + 30, // expiry time is 30 seconds from time of creation",
+					"\t'jti': 'jwt_nonce'",
+					"}",
+					"",
+					"",
+					"function base64url(source) {",
+					"    // Encode in classical base64",
+					"    encodedSource = CryptoJS.enc.Base64.stringify(source)",
+					"    ",
+					"    // Remove padding equal characters",
+					"    encodedSource = encodedSource.replace(/=+$/, '')",
+					"    ",
+					"    // Replace characters according to base64url specifications",
+					"    encodedSource = encodedSource.replace(/\\+/g, '-')",
+					"    encodedSource = encodedSource.replace(/\\//g, '_')",
+					"    ",
+					"    return encodedSource",
+					"}",
+					"",
+					"// encode header",
+					"var stringifiedHeader = CryptoJS.enc.Utf8.parse(JSON.stringify(header))",
+					"var encodedHeader = base64url(stringifiedHeader)",
+					"",
+					"// encode data",
+					"var stringifiedData = CryptoJS.enc.Utf8.parse(JSON.stringify(data))",
+					"var encodedData = base64url(stringifiedData)",
+					"",
+					"// build token",
+					"var token = `${encodedHeader}.${encodedData}`",
+					"",
+					"// sign token",
+					"var signature = CryptoJS.HmacSHA256(token, jwtSecret)",
+					"signature = base64url(signature)",
+					"var signedToken = `${token}.${signature}`",
+					"",
+					"pm.environment.set('jwt_signed', signedToken)",
+					"console.log('Signed and encoded JWT', signedToken)"
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	]
+}
