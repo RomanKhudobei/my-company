@@ -25,7 +25,7 @@ def get_user_by_id(user_id):
 
 
 def update_user(user, updated_data):
-    validated_data = UserSchema().load(updated_data)
+    validated_data = UserSchema(exclude=['company', 'employer']).load(updated_data)
 
     for field, value in validated_data.items():
         setattr(user, field, value)

@@ -72,7 +72,7 @@ def get_employee_by_id(employee_id):
 
 
 def update_employee(employee, updated_data):
-    validated_data = UserSchema().load(updated_data)
+    validated_data = UserSchema(exclude=['company', 'employer']).load(updated_data)
 
     for field, value in validated_data.items():
         setattr(employee.user, field, value)

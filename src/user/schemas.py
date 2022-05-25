@@ -34,8 +34,6 @@ class UserCreateSchema(ma.Schema):
 class UserSchema(ma.SQLAlchemyAutoSchema):
     id = fields.Integer(dump_only=True)
     email = fields.Email(dump_only=True)
-    company = fields.Integer(dump_only=True)
-    employer = fields.Integer(dump_only=True)
     created_at = fields.DateTime(dump_only=True)
 
     first_name = fields.String(required=True, allow_none=False, validate=[not_empty])
@@ -43,7 +41,6 @@ class UserSchema(ma.SQLAlchemyAutoSchema):
 
     class Meta:
         model = User
-        # include_fk = True
         include_relationships = True
         exclude = ['password', 'vehicles']
 

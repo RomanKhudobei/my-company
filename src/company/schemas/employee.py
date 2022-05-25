@@ -1,5 +1,5 @@
 import marshmallow
-from marshmallow import fields, validates, validates_schema
+from marshmallow import fields, validates
 
 from app.marshmallow import ma
 from company.models import Employee, Office

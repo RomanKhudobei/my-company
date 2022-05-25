@@ -102,6 +102,15 @@ class TestUserRetrieve:
         assert response.status_code == 200
         assert response.json.get('id') == user.id
 
+    def test_retrieve_user_with_company(self, db, client, create_user, create_company):
+        user = create_user()
+        create_company(user)
+
+        response = client.get(url_for('user.retrieve'), headers=get_auth_headers(user))
+
+        assert response.status_code == 200
+        assert response.json.get('id') == user.id
+
     def test_user_retrieve_without_authentication(self, db, client, create_user):
         response = client.get(url_for('user.retrieve'))
         assert response.status_code == 401

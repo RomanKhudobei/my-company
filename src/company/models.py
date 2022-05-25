@@ -47,6 +47,7 @@ class Employee(db.Model):
 
     user = db.relationship(
         'User',
+        uselist=False,
         cascade='all,delete',
         backref=db.backref(
             'employer',
@@ -56,6 +57,7 @@ class Employee(db.Model):
     )
     company = db.relationship(
         'Company',
+        uselist=False,
         backref=db.backref(
             'employees',
             lazy=True,
